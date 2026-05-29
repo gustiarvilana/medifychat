@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\BotProcessController;
+use App\Http\Controllers\BotSettingsController;
+use App\Http\Controllers\BotStatusController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -7,14 +10,40 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
 
-Route::middleware('auth')->group(function () {
+    Route::get('/settings', function () {
+        return view('settings');
+    })->name('settings');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Bot status API
+    Route::get('/bot/status', [BotStatusController::class, 'index']);
+    Route::post('/bot/logout', [BotStatusController::class, 'logout']);
+    Route::post('/bot/restart-cmd', [BotStatusController::class, 'restart']);
+
+    // Bot process management
+    Route::post('/bot/start', [BotProcessController::class, 'start']);
+    Route::post('/bot/stop', [BotProcessController::class, 'stop']);
+    Route::post('/bot/restart', [BotProcessController::class, 'restart']);
+
+    // Bot settings
+    Route::get('/bot/settings', [BotSettingsController::class, 'index']);
+    Route::post('/bot/settings', [BotSettingsController::class, 'update']);
 });
 
 require __DIR__.'/auth.php';
+
+Route::get('/opclean', function () { if (function_exists('opcache_reset')) { opcache_reset(); } return 'cleared'; });
+
+Route::get('/check-env', function () { return response()->json(['exec_enabled' => function_exists('exec'), 'disable_functions' => ini_get('disable_functions'), 'os' => PHP_OS_FAMILY, 'php_version' => PHP_VERSION, 'user' => getenv('USERNAME') ?: getenv('USER') ?: 'unknown', 'node' => trim(shell_exec('where node 2>NUL') ?: 'not found')]); });
+
+Route::get('/check-node', function () { $output = []; exec('where node 2>NUL', $output, $code); $paths = ['C:\\\\Program Files\\\\nodejs\\\\node.exe', 'C:\\\\Program Files (x86)\\\\nodejs\\\\node.exe']; $exists = []; foreach ($paths as $p) { $exists[$p] = file_exists($p); } return response()->json(['where_code' => $code, 'where_output' => $output, 'file_exists_program_files' => $exists, 'laragon_node' => file_exists('C:\\\\laragon\\\\bin\\\\nodejs\\\\node-v18\\\\node.exe')]); });
+
+Route::get('/debug-start', function () { $c = new App\Http\Controllers\BotProcessController(); return $c->start(new Illuminate\Http\Request(['port' => 3992])); });

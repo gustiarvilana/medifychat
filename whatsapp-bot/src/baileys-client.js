@@ -1,0 +1,136 @@
+import makeWASocket, {
+  useMultiFileAuthState,
+  DisconnectReason,
+  makeCacheableSignalKeyStore,
+} from '@whiskeysockets/baileys';
+import QRCode from 'qrcode';
+import * as db from './database.js';
+import { handleMessage, handleMessageForState } from './message-handler.js';
+import pino from 'pino';
+
+let sock = null;
+let isConnected = false;
+
+export async function startBot() {
+  const { state, saveCreds } = await useMultiFileAuthState('auth');
+
+  const logger = pino({ level: 'silent' });
+
+  sock = makeWASocket({
+    auth: {
+      creds: state.creds,
+      keys: makeCacheableSignalKeyStore(state.keys, logger),
+    },
+    printQRInTerminal: false,
+    logger,
+    browser: ['Medify Bot', 'Chrome', '1.0.0'],
+    markOnlineOnConnect: false,
+    syncFullHistory: true,
+    generateHighQualityLinkPreview: false,
+  });
+
+  sock.ev.on('creds.update', saveCreds);
+
+  sock.ev.on('connection.update', async (update) => {
+    const { connection, lastDisconnect, qr } = update;
+
+    if (qr) {
+      console.log('QR Code received');
+      try {
+        const qrImage = await QRCode.toDataURL(qr, { width: 400, margin: 2 });
+        await db.updateBotStatus({
+          qr_code: qrImage,
+          is_logged_in: false,
+          is_running: true,
+          last_activity: new Date(),
+        });
+      } catch (err) {
+        console.error('Failed to generate QR image:', err);
+      }
+    }
+
+    if (connection === 'open') {
+      console.log('WhatsApp connected!');
+      isConnected = true;
+      await db.updateBotStatus({
+        is_logged_in: true,
+        is_running: true,
+        qr_code: null,
+        last_activity: new Date(),
+      });
+    }
+
+    if (connection === 'close') {
+      isConnected = false;
+      const statusCode = lastDisconnect?.error?.output?.statusCode;
+      console.log('Connection closed, statusCode:', statusCode);
+
+      const isLoggedOut = statusCode === DisconnectReason.loggedOut;
+      await db.updateBotStatus({
+        is_logged_in: false,
+        is_running: isLoggedOut ? false : true,
+        last_activity: new Date(),
+      });
+
+      if (isLoggedOut) {
+        await db.updateBotStatus({ is_running: false });
+      } else {
+        console.log('Reconnecting in 5 seconds...');
+        setTimeout(startBot, 5000);
+      }
+    }
+  });
+
+  sock.ev.on('messages.upsert', async (msg) => {
+    for (const message of msg.messages) {
+      if (!message.key || message.key.fromMe) continue;
+
+      const text =
+        message.message?.conversation ||
+        message.message?.extendedTextMessage?.text;
+      if (!text) continue;
+
+      const sender = message.key.remoteJid;
+      console.log(`Message from ${sender}: ${text}`);
+
+      try {
+        const session = await db.getSession(sender);
+        const state = session?.current_state || 'IDLE';
+        const raw = session?.form_data || {};
+        const formData = typeof raw === 'string' ? JSON.parse(raw) : raw;
+
+        const handled = await handleMessageForState(sender, text, state, formData);
+        if (!handled) {
+          await handleMessage(sender, text);
+        }
+
+        await db.updateBotStatus({ last_activity: new Date() });
+      } catch (error) {
+        console.error('Error handling message:', error);
+      }
+    }
+  });
+
+  sock.ev.on('messages.update', async (event) => {
+    for (const { key, update } of event) {
+      if (update.pollUpdates) {
+        console.log('Poll update received, key:', key.id);
+      }
+    }
+  });
+
+  return sock;
+}
+
+export function getSocket() {
+  return sock;
+}
+
+export async function sendMessage(jid, text) {
+  if (!sock) throw new Error('Socket not initialized');
+  await sock.sendMessage(jid, { text });
+}
+
+export function isLoggedIn() {
+  return isConnected;
+}

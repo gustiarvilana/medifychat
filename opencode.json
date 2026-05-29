@@ -1,0 +1,32 @@
+{
+  "$schema": "https://opencode.ai/schema/opencode.json",
+  "name": "Medify Chat",
+  "description": "WhatsApp Bot + Web Admin for Medify Hospital",
+  "commands": {
+    "dev": {
+      "description": "Start Laravel dev server, queue listener, and Vite",
+      "command": "composer dev",
+      "group": "development"
+    },
+    "test": {
+      "description": "Run PHP tests",
+      "command": "composer test",
+      "group": "testing"
+    },
+    "lint": {
+      "description": "Run PHP linter (Pint)",
+      "command": "vendor/bin/pint",
+      "group": "testing"
+    },
+    "migrate": {
+      "description": "Run database migrations",
+      "command": "php artisan migrate",
+      "group": "database"
+    },
+    "bot:dev": {
+      "description": "Start WhatsApp bot in development mode",
+      "command": "cd whatsapp-bot && npm run dev",
+      "group": "development"
+    }
+  }
+}
