@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Medify Admin Login</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-tint": "#3755c3",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed": "#2a1700",
+                        "secondary": "#006c49",
+                        "surface-container": "#e5eeff",
+                        "surface-container-high": "#dce9ff",
+                        "on-primary-fixed-variant": "#173bab",
+                        "on-surface-variant": "#444653",
+                        "error-container": "#ffdad6",
+                        "surface-container-highest": "#d3e4fe",
+                        "on-secondary-container": "#00714d",
+                        "secondary-fixed": "#6ffbbe",
+                        "on-error-container": "#93000a",
+                        "on-primary-container": "#a8b8ff",
+                        "secondary-fixed-dim": "#4edea3",
+                        "surface-container-low": "#eff4ff",
+                        "surface-variant": "#d3e4fe",
+                        "on-error": "#ffffff",
+                        "inverse-surface": "#213145",
+                        "inverse-on-surface": "#eaf1ff",
+                        "tertiary-container": "#6b4200",
+                        "primary": "#00288e",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-container": "#1e40af",
+                        "on-primary-fixed": "#001453",
+                        "on-surface": "#0b1c30",
+                        "primary-fixed": "#dde1ff",
+                        "background": "#f8f9ff",
+                        "error": "#ba1a1a",
+                        "inverse-primary": "#b8c4ff",
+                        "outline": "#757684",
+                        "surface-bright": "#f8f9ff",
+                        "on-tertiary-container": "#ffa929",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "secondary-container": "#6cf8bb",
+                        "outline-variant": "#c4c5d5",
+                        "on-secondary": "#ffffff",
+                        "surface-dim": "#cbdbf5",
+                        "on-background": "#0b1c30",
+                        "on-secondary-fixed": "#002113",
+                        "surface": "#f8f9ff",
+                        "tertiary": "#4c2e00",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed-variant": "#005236",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "primary-fixed-dim": "#b8c4ff",
+                        "tertiary-fixed": "#ffddb8"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "base": "8px",
+                        "gutter": "24px",
+                        "2xl": "48px",
+                        "margin": "32px",
+                        "lg": "24px",
+                        "xl": "32px",
+                        "sm": "12px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "code-sm": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "title-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "headline-lg": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "code-sm": ["13px", {"lineHeight": "18px", "fontWeight": "500"}],
+                        "display-lg": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "title-md": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #f8f9ff;
+            background-image: radial-gradient(circle at 2px 2px, #e2e8f0 1px, transparent 0);
+            background-size: 48px 48px;
+        }
+        .medical-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.4;
+        }
+        .login-card {
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+        }
+    </style>
+</head>
+<body class="font-body-md text-on-surface selection:bg-primary-container selection:text-white min-h-screen flex items-center justify-center p-md">
+<!-- Abstract Medical Themed Background Elements -->
+<div class="medical-pattern overflow-hidden">
+<svg class="absolute top-[-10%] right-[-5%] w-[40%] text-surface-container opacity-20" viewbox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<path d="M44.7,-76.4C58.3,-69.2,70.1,-58.5,78.2,-45.5C86.3,-32.5,90.7,-17.2,90.1,-2.2C89.5,12.8,83.8,27.5,74.9,40.1C65.9,52.7,53.6,63.2,39.8,70.5C26,77.8,10.6,81.8,-4.2,88.9C-19,96.1,-33.1,106.4,-45.1,104.3C-57.2,102.2,-67.2,87.6,-74.6,73.4C-82.1,59.3,-87.1,45.6,-90.4,31.5C-93.7,17.4,-95.4,2.9,-92.8,-11.1C-90.2,-25.1,-83.4,-38.6,-73.4,-49.6C-63.5,-60.7,-50.4,-69.3,-37.1,-76.8C-23.8,-84.3,-10.3,-90.7,2.5,-94.9C15.3,-99.1,28.6,-101.2,44.7,-76.4Z" fill="currentColor" transform="translate(100 100)"></path>
+</svg>
+<svg class="absolute bottom-[-5%] left-[-10%] w-[35%] text-surface-container opacity-20" viewbox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<path d="M39.9,-65.7C52.1,-59.1,62.6,-48.5,70.1,-35.9C77.6,-23.3,82.1,-8.7,80.8,5.4C79.5,19.5,72.4,33.1,62.8,44.4C53.2,55.7,41.2,64.7,27.8,70.4C14.4,76.1,-0.4,78.5,-15,76C-29.6,73.5,-44,66,-55,55.4C-66.1,44.8,-73.8,31.1,-77.8,16.4C-81.8,1.7,-82.1,-13.9,-77.4,-28.4C-72.7,-42.9,-62.9,-56.3,-50,-62.6C-37.1,-68.9,-21.1,-68.1,-4.9,-60.2C11.3,-52.3,27.7,-72.3,39.9,-65.7Z" fill="currentColor" transform="translate(100 100)"></path>
+</svg>
+</div>
+<main class="w-full max-w-[440px] z-10">
+<!-- Login Card -->
+<div class="bg-surface-container-lowest login-card rounded-xl border border-outline-variant p-xl flex flex-col items-center">
+<!-- Brand Identity -->
+<div class="flex items-center gap-base mb-xl">
+<div class="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-[28px]" data-icon="medical_services">medical_services</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-lg text-headline-lg text-primary tracking-tight">Medify</span>
+<span class="font-label-caps text-label-caps text-outline uppercase">Admin Dashboard</span>
+</div>
+</div>
+<div class="w-full mb-lg text-center">
+<h1 class="font-title-md text-title-md text-on-surface mb-xs">Welcome Back</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Please enter your clinical credentials to access the system.</p>
+</div>
+<!-- Form -->
+<form action="#" class="w-full space-y-lg" onsubmit="return false;">
+<!-- Email Field -->
+<div class="space-y-xs">
+<label class="font-body-sm text-body-sm font-bold text-on-surface" for="email">Email Address</label>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors" data-icon="mail">mail</span>
+<input class="w-full pl-xl pr-md py-sm bg-surface-container-lowest border border-outline-variant rounded-lg font-body-sm text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all" id="email" name="email" placeholder="admin@medify.hospital" type="email"/>
+</div>
+</div>
+<!-- Password Field -->
+<div class="space-y-xs">
+<div class="flex justify-between items-center">
+<label class="font-body-sm text-body-sm font-bold text-on-surface" for="password">Password</label>
+<a class="font-body-sm text-body-sm text-primary hover:underline font-semibold" href="#">Forgot password?</a>
+</div>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors" data-icon="lock">lock</span>
+<input class="w-full pl-xl pr-xl py-sm bg-surface-container-lowest border border-outline-variant rounded-lg font-body-sm text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all" id="password" name="password" placeholder="••••••••" type="password"/>
+<button class="absolute right-md top-1/2 -translate-y-1/2 text-outline hover:text-on-surface-variant transition-colors" type="button">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</button>
+</div>
+</div>
+<!-- Remember Me -->
+<div class="flex items-center gap-base">
+<input class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary transition-all cursor-pointer" id="remember" name="remember" type="checkbox"/>
+<label class="font-body-sm text-body-sm text-on-surface-variant cursor-pointer select-none" for="remember">Remember me on this device</label>
+</div>
+<!-- Sign In Button -->
+<button class="w-full h-[48px] bg-primary text-on-primary font-title-md text-title-md rounded-xl hover:bg-primary-container active:scale-[0.98] transition-all duration-200 shadow-sm flex items-center justify-center gap-base group" type="submit">
+                    Sign In
+                    <span class="material-symbols-outlined transition-transform group-hover:translate-x-1" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</form>
+<!-- Secondary Actions -->
+<div class="mt-xl pt-lg border-t border-outline-variant w-full text-center">
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                    Don't have an account? 
+                    <a class="text-primary font-bold hover:underline transition-all" href="#">Register here</a>
+</p>
+</div>
+</div>
+<!-- Footer / Trust Badges -->
+<div class="mt-xl flex flex-col items-center gap-md">
+<div class="flex items-center gap-lg opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+<img alt="HIPAA Compliance" class="h-6 object-contain" data-alt="A clean, professional digital badge or logo representing HIPAA compliance for medical software, featuring a shield icon and corporate typography in shades of deep blue and white, suitable for a healthcare administrative environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC2SETDvqGHifxHdM9HWikTxIDs6a9Oh7QaWdcCnHt-5mo87A1Sx0-enP8lQpJCTcb_LIPMFq0nL5Lje8aQnfMlYZKWSzcqGtpz0WSiHvI6TJYyaMKgb7GuvySJg5H0w7AnIo_vQ-yWGE7ZIShi6NkHESDRLOs93IRUQ2bRYTTxbs6OPEJvtIqwQrPvX6Uoxa1wf2RldldtCSIYvB_zYlTZ6dMIDO9DbsEYX1QFJnSSSr-PDsl9sibihqMfSkavniZ2k6yEl2PiN3Y"/>
+<img alt="GDPR Ready" class="h-6 object-contain" data-alt="The official GDPR compliance logo with gold stars on a blue background, presented in a minimalist and sharp high-definition format to emphasize data security and privacy standards in a modern medical dashboard context." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1LwQa4KZrwxd3Pi4TkyB09QW-7EOAh2BJzIFh4hyfiHnwev5F6rWtiUc_BOcUhUtfex1ocM5VIHwOrUiMUgaFvh8EZm_QTyy0cUQl1DWkSh8TFVRzGkQogt2QtxIfdRc7Kgc-b8A9EFnvbqZEZIghTTK6eywBjCX1dXwkOya5G8jT25VF8S9eXltsVFffQoflC1o3iym6dbJLYMP8MPR5yC9SnzU5n6V0c9zZAApnSob8-JFSd1IsItDoSJXyGBCON7kcTECNmPk"/>
+</div>
+<p class="font-label-caps text-label-caps text-outline tracking-widest text-center px-lg">
+                SECURE ACCESS • ENCRYPTED SESSION • END-TO-END DATA PROTECTION
+            </p>
+</div>
+</main>
+<script>
+        // Simple micro-interaction for password visibility
+        const togglePass = document.querySelector('button[type="button"]');
+        const passInput = document.getElementById('password');
+        const icon = togglePass.querySelector('.material-symbols-outlined');
+
+        togglePass.addEventListener('click', () => {
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                icon.textContent = 'visibility_off';
+            } else {
+                passInput.type = 'password';
+                icon.textContent = 'visibility';
+            }
+        });
+
+        // Form submission ripple effect simulation
+        const submitBtn = document.querySelector('button[type="submit"]');
+        submitBtn.addEventListener('click', (e) => {
+            if (passInput.value && document.getElementById('email').value) {
+                submitBtn.innerHTML = '<span class="material-symbols-outlined animate-spin" data-icon="progress_activity">progress_activity</span> Authenticating...';
+                setTimeout(() => {
+                    submitBtn.innerHTML = 'Access Granted <span class="material-symbols-outlined" data-icon="check_circle">check_circle</span>';
+                    submitBtn.classList.replace('bg-primary', 'bg-secondary');
+                }, 1500);
+            }
+        });
+    </script>
+</body></html>
