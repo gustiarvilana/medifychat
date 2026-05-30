@@ -38,65 +38,79 @@ export async function startBot() {
   });
 
   sock.ev.on('connection.update', async (update) => {
-    const { connection, lastDisconnect, qr } = update;
+    try {
+      const { connection, lastDisconnect, qr } = update;
 
-    if (qr) {
-      console.log('QR Code received');
-      try {
-        const qrImage = await QRCode.toDataURL(qr, { width: 400, margin: 2 });
+      if (qr) {
+        console.log('QR Code received');
+        try {
+          const qrImage = await QRCode.toDataURL(qr, { width: 400, margin: 2 });
+          await db.updateBotStatus({
+            qr_code: qrImage,
+            is_logged_in: false,
+            is_running: true,
+            last_activity: new Date(),
+          });
+        } catch (err) {
+          console.error('Failed to generate QR image:', err);
+        }
+      }
+
+      if (connection === 'open') {
+        console.log('WhatsApp connected!');
+        isConnected = true;
         await db.updateBotStatus({
-          qr_code: qrImage,
-          is_logged_in: false,
+          is_logged_in: true,
           is_running: true,
+          qr_code: null,
           last_activity: new Date(),
         });
-      } catch (err) {
-        console.error('Failed to generate QR image:', err);
       }
-    }
 
-    if (connection === 'open') {
-      console.log('WhatsApp connected!');
-      isConnected = true;
-      await db.updateBotStatus({
-        is_logged_in: true,
-        is_running: true,
-        qr_code: null,
-        last_activity: new Date(),
-      });
-    }
+      if (connection === 'close') {
+        isConnected = false;
+        const statusCode = lastDisconnect?.error?.output?.statusCode;
+        console.log('Connection closed, statusCode:', statusCode);
 
-    if (connection === 'close') {
-      isConnected = false;
-      const statusCode = lastDisconnect?.error?.output?.statusCode;
-      console.log('Connection closed, statusCode:', statusCode);
-
-      const isLoggedOut = statusCode === DisconnectReason.loggedOut;
-      await db.updateBotStatus({
-        is_logged_in: false,
-        is_running: isLoggedOut ? false : true,
-        last_activity: new Date(),
-      });
-
-      if (isLoggedOut) {
-        console.log('Logged out, clearing auth for fresh QR...');
+        const isLoggedOut = statusCode === DisconnectReason.loggedOut;
+        console.log('Updating DB status after disconnect...');
         try {
-          const { readdirSync, unlinkSync } = await import('fs');
-          const { join } = await import('path');
-          const authDir = join(process.cwd(), 'auth');
-          for (const file of readdirSync(authDir)) {
-            unlinkSync(join(authDir, file));
+          await db.updateBotStatus({
+            is_logged_in: false,
+            is_running: isLoggedOut ? false : true,
+            last_activity: new Date(),
+          });
+        } catch (dbErr) {
+          console.error('DB update after disconnect failed:', dbErr);
+        }
+
+        if (isLoggedOut) {
+          console.log('Logged out, clearing auth for fresh QR...');
+          try {
+            const { readdirSync, unlinkSync } = await import('fs');
+            const { join } = await import('path');
+            const authDir = join(process.cwd(), 'auth');
+            for (const file of readdirSync(authDir)) {
+              unlinkSync(join(authDir, file));
+            }
+            console.log('Auth files cleared');
+          } catch (_) {}
+          try {
+            await db.updateBotStatus({ is_running: false });
+          } catch (dbErr) {
+            console.error('DB update after auth clear failed:', dbErr);
           }
-          console.log('Auth files cleared');
-        } catch (_) {}
-        await db.updateBotStatus({ is_running: false });
-        setTimeout(() => {
-          startBot().catch(err => console.error('StartBot after logout failed:', err));
-        }, 3000);
-      } else {
-        console.log('Reconnecting in 5 seconds...');
-        setTimeout(startBot, 5000);
+          console.log('Restarting in 3 seconds...');
+          setTimeout(() => {
+            startBot().catch(err => console.error('StartBot after logout failed:', err));
+          }, 3000);
+        } else {
+          console.log('Reconnecting in 5 seconds...');
+          setTimeout(startBot, 5000);
+        }
       }
+    } catch (err) {
+      console.error('connection.update handler error:', err);
     }
   });
 

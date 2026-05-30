@@ -24,6 +24,14 @@ class BotProcessController extends Controller
                 return response()->json(['error' => 'Bot is already running'], 409);
             }
 
+            $result = $this->dockerApiCall('POST', '/containers/medify-bot/start');
+
+            if ($result === false) {
+                return response()->json([
+                    'error' => 'Failed to start Docker container (HTTP ' . ($this->lastDockerHttpCode ?? 'N/A') . ')'
+                ], 500);
+            }
+
             DB::table('bot_status')->where('id', 1)->update([
                 'is_running' => true,
                 'is_logged_in' => false,
@@ -33,8 +41,6 @@ class BotProcessController extends Controller
                 'last_activity' => now(),
                 'updated_at' => now(),
             ]);
-
-            $this->dockerApiCall('POST', '/containers/medify-bot/start');
 
             return response()->json([
                 'message' => 'Bot started successfully',
@@ -176,7 +182,24 @@ class BotProcessController extends Controller
     public function stop(): JsonResponse
     {
         if ($this->isDockerMode()) {
-            $this->dockerApiCall('POST', '/containers/medify-bot/stop');
+            $result = $this->dockerApiCall('POST', '/containers/medify-bot/stop');
+
+            if ($result === false) {
+                $running = $this->isDockerContainerRunning();
+                if (!$running) {
+                    DB::table('bot_status')->where('id', 1)->update([
+                        'is_running' => false,
+                        'is_logged_in' => false,
+                        'pid' => null,
+                        'qr_code' => null,
+                        'updated_at' => now(),
+                    ]);
+                    return response()->json(['message' => 'Bot stopped (container was already stopped)']);
+                }
+                return response()->json([
+                    'error' => 'Failed to stop Docker container (HTTP ' . ($this->lastDockerHttpCode ?? 'N/A') . ')'
+                ], 500);
+            }
 
             DB::table('bot_status')->where('id', 1)->update([
                 'is_running' => false,
@@ -227,7 +250,13 @@ class BotProcessController extends Controller
     public function restart(Request $request): JsonResponse
     {
         if ($this->isDockerMode()) {
-            $this->dockerApiCall('POST', '/containers/medify-bot/restart');
+            $result = $this->dockerApiCall('POST', '/containers/medify-bot/restart');
+
+            if ($result === false) {
+                return response()->json([
+                    'error' => 'Failed to restart Docker container (HTTP ' . ($this->lastDockerHttpCode ?? 'N/A') . ')'
+                ], 500);
+            }
 
             DB::table('bot_status')->where('id', 1)->update([
                 'is_running' => true,
@@ -332,10 +361,13 @@ class BotProcessController extends Controller
 
     private function isDockerMode(): bool
     {
-        return file_exists('/var/run/docker.sock');
+        $socket = '/var/run/docker.sock';
+        return file_exists($socket) && is_readable($socket) && is_writable($socket);
     }
 
-    private function dockerApiCall(string $method, string $endpoint): ?array
+    private ?int $lastDockerHttpCode = null;
+
+    private function dockerApiCall(string $method, string $endpoint): array|bool
     {
         $ch = curl_init();
         curl_setopt_array($ch, [
@@ -346,14 +378,22 @@ class BotProcessController extends Controller
             CURLOPT_TIMEOUT => 10,
         ]);
         $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $this->lastDockerHttpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        if ($httpCode >= 200 && $httpCode < 300) {
-            return json_decode($response, true);
+        if ($this->lastDockerHttpCode >= 200 && $this->lastDockerHttpCode < 300) {
+            $decoded = json_decode($response, true);
+            return $decoded !== null ? $decoded : true;
         }
 
-        return null;
+        Log::error('Docker API call failed', [
+            'method' => $method,
+            'endpoint' => $endpoint,
+            'httpCode' => $this->lastDockerHttpCode,
+            'response' => $response,
+        ]);
+
+        return false;
     }
 
     private function isDockerContainerRunning(): bool

@@ -36,7 +36,8 @@ COPY . .
 RUN composer install --no-dev --no-interaction --no-progress --optimize-autoloader \
     && npm ci && npm run build && rm -rf node_modules \
     && php artisan storage:link \
-    && chown -R www-data:www-data storage bootstrap/cache public/build
+    && chown -R www-data:www-data storage bootstrap/cache public/build \
+    && adduser www-data root
 
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf
 COPY docker/supervisord.conf /etc/supervisord.conf

@@ -4,8 +4,8 @@ services:
     container_name: medify-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-medify_secret}
-      MYSQL_DATABASE: ${DB_DATABASE:-medifychat}
+      MYSQL_ROOT_PASSWORD: medify_secret
+      MYSQL_DATABASE: medifychat
     volumes:
       - mysql_data:/var/lib/mysql
     ports:
@@ -28,15 +28,15 @@ services:
     environment:
       APP_ENV: production
       APP_DEBUG: false
-      APP_KEY: ${APP_KEY}
-      APP_URL: ${APP_URL:-http://localhost}
+      APP_KEY: base64:AdKPw9k77edwRTR8k3JqdwylEeDtxlkEiOIblqaL8I0=
+      APP_URL: http://localhost:5001
 
       DB_CONNECTION: mysql
       DB_HOST: mysql
       DB_PORT: 3306
-      DB_DATABASE: ${DB_DATABASE:-medifychat}
+      DB_DATABASE: medifychat
       DB_USERNAME: root
-      DB_PASSWORD: ${DB_PASSWORD:-medify_secret}
+      DB_PASSWORD: medify_secret
 
       LOG_CHANNEL: stderr
       SESSION_DRIVER: file
@@ -46,7 +46,7 @@ services:
       - app_storage:/var/www/html/storage
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
-      - "${APP_PORT:-5001}:80"
+      - "5001:80"
 
   bot:
     build:
@@ -61,19 +61,19 @@ services:
       DB_HOST: mysql
       DB_PORT: 3306
       DB_USER: root
-      DB_PASSWORD: ${DB_PASSWORD:-medify_secret}
+      DB_PASSWORD: medify_secret
       DB_NAME: medifychat
 
-      MEDIFY_API_URL: ${MEDIFY_API_URL}
-      MEDIFY_API_EMAIL: ${MEDIFY_API_EMAIL}
-      MEDIFY_API_PASSWORD: ${MEDIFY_API_PASSWORD}
+      MEDIFY_API_URL: https://rs-mulia-pajajaran.medifyapp.com/api/online
+      MEDIFY_API_EMAIL: user@rsmulia.com
+      MEDIFY_API_PASSWORD: 123456
 
-      BOT_SESSION_TIMEOUT: ${BOT_SESSION_TIMEOUT:-30}
-      BOT_HEARTBEAT_INTERVAL: ${BOT_HEARTBEAT_INTERVAL:-10000}
-      BOT_MESSAGE_DELAY: ${BOT_MESSAGE_DELAY:-3000}
+      BOT_SESSION_TIMEOUT: 30
+      BOT_HEARTBEAT_INTERVAL: 10000
+      BOT_MESSAGE_DELAY: 3000
 
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      ADMIN_WHATSAPP_NUMBER: ${ADMIN_WHATSAPP_NUMBER:-}
+      GEMINI_API_KEY: ""
+      ADMIN_WHATSAPP_NUMBER: 42000535535619
       PORT: 3001
     volumes:
       - bot_auth:/app/auth

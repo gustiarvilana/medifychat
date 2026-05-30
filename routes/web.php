@@ -10,6 +10,19 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/debug/qr', function () {
+    $status = DB::table('bot_status')->where('id', 1)->first();
+    return response()->json([
+        'has_status' => $status ? true : false,
+        'is_running' => $status->is_running ?? null,
+        'is_logged_in' => $status->is_logged_in ?? null,
+        'qr_type' => $status ? gettype($status->qr_code) : 'no_status',
+        'qr_len' => $status ? strlen($status->qr_code ?? '') : 0,
+        'qr_preview' => $status ? substr($status->qr_code ?? '', 0, 60) : null,
+        'has_png_header' => $status && strpos($status->qr_code ?? '', 'data:image/png') === 0 ? true : false,
+    ]);
+});
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard');
