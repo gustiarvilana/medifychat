@@ -31,6 +31,12 @@ export async function startBot() {
 
   sock.ev.on('creds.update', saveCreds);
 
+  sock.ev.on('lid-mapping.update', (mappings) => {
+    for (const [lid, pn] of Object.entries(mappings)) {
+      console.log(`LID Mapping found: ${lid} -> ${pn}`);
+    }
+  });
+
   sock.ev.on('connection.update', async (update) => {
     const { connection, lastDisconnect, qr } = update;
 
@@ -90,8 +96,26 @@ export async function startBot() {
         message.message?.extendedTextMessage?.text;
       if (!text) continue;
 
-      const sender = message.key.remoteJid;
-      console.log(`Message from ${sender}: ${text}`);
+      let sender = message.key.remoteJid;
+      const realSender = message.key.remoteJidAlt || message.key.participantAlt;
+      
+      if (realSender && sender.endsWith('@lid')) {
+        console.log(`LID detected: ${sender}, mapping to PN: ${realSender}`);
+        sender = realSender;
+      } else if (sender.endsWith('@lid')) {
+        // Try to get from store if available
+        const lidStore = sock.signalRepository?.lidMapping;
+        if (lidStore) {
+          const pnJid = await lidStore.getPNForLID(sender);
+          if (pnJid) {
+            console.log(`LID store mapping: ${sender} -> ${pnJid}`);
+            sender = pnJid;
+          }
+        }
+      }
+
+      const name = message.pushName || null;
+      console.log(`Message from ${sender} (${name}): ${text}`);
 
       try {
         const session = await db.getSession(sender);
@@ -99,9 +123,9 @@ export async function startBot() {
         const raw = session?.form_data || {};
         const formData = typeof raw === 'string' ? JSON.parse(raw) : raw;
 
-        const handled = await handleMessageForState(sender, text, state, formData);
+        const handled = await handleMessageForState(sender, text, state, formData, name);
         if (!handled) {
-          await handleMessage(sender, text);
+          await handleMessage(sender, text, name);
         }
 
         await db.updateBotStatus({ last_activity: new Date() });

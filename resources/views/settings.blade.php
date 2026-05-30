@@ -1,162 +1,295 @@
 <x-app-layout>
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
-        <!-- Main Column -->
-        <div class="lg:col-span-8 space-y-gutter">
-            <!-- Bot Engine Control -->
-            <section class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg" style="box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);">
-                <div class="flex items-center justify-between border-b border-surface-container-low pb-md mb-lg">
-                    <div class="flex items-center gap-sm">
-                        <span class="material-symbols-outlined text-primary">power_settings_new</span>
-                        <h2 class="font-title-md text-title-md">Bot Engine</h2>
-                    </div>
-                    <span id="engine-badge" class="bg-surface-container-high text-on-surface-variant px-sm py-xs rounded-full text-label-caps uppercase tracking-wider">Offline</span>
-                </div>
+    <x-slot name="header">
+        WhatsApp Bot
+    </x-slot>
 
-                <!-- Port Configuration -->
-                <div class="mb-lg">
-                    <label class="font-body-sm font-bold text-on-surface" for="bot-port">Node.js Server Port</label>
-                    <p class="text-on-surface-variant font-body-sm mb-base">Port for the WhatsApp bot engine (1024-65535).</p>
-                    <div class="flex items-center gap-md">
-                        <input id="bot-port" type="number" min="1024" max="65535" value="3001"
-                            class="w-32 px-md py-sm bg-surface-container-lowest border border-outline-variant rounded-lg font-body-sm text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all" />
-                        <button id="btn-start"
-                            onclick="startBot()"
-                            class="bg-secondary text-on-secondary px-lg py-sm rounded-xl font-body-md font-semibold hover:opacity-90 transition-all flex items-center gap-sm">
-                            <span class="material-symbols-outlined">play_arrow</span>
-                            Start
-                        </button>
-                        <button id="btn-stop"
-                            onclick="stopBot()"
-                            class="bg-error text-on-error px-lg py-sm rounded-xl font-body-md font-semibold hover:opacity-90 transition-all flex items-center gap-sm hidden">
-                            <span class="material-symbols-outlined">stop</span>
-                            Stop
-                        </button>
-                        <button id="btn-restart"
-                            onclick="restartBot()"
-                            class="border border-outline-variant text-on-surface-variant px-lg py-sm rounded-xl font-body-md font-semibold hover:bg-surface-container-low transition-all flex items-center gap-sm hidden">
-                            <span class="material-symbols-outlined">refresh</span>
-                            Restart
-                        </button>
+    <!-- Bot & Connection Tab -->
+    <div id="panel-bot-settings" class="tab-panel">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+            <!-- Left Column: Configuration -->
+            <div class="lg:col-span-8 space-y-gutter">
+                <!-- Bot Configuration Section -->
+                <section class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm">
+                    <div class="flex items-center justify-between border-b border-surface-container-low pb-md mb-lg">
+                        <div class="flex items-center gap-sm">
+                            <span class="material-symbols-outlined text-primary">tune</span>
+                            <h2 class="font-title-md text-title-md">Bot Configuration</h2>
+                        </div>
+                        <span id="engine-badge" class="bg-surface-container-high text-on-surface-variant px-sm py-xs rounded-full text-label-caps uppercase tracking-wider">Checking...</span>
                     </div>
-                </div>
 
-                <!-- Status Log -->
-                <div id="status-log" class="bg-surface-dim rounded-lg p-md font-code-sm text-code-sm text-on-surface min-h-[80px] max-h-[160px] overflow-y-auto">
-                    Bot is offline. Set a port and click Start.
-                </div>
-            </section>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+                        <div class="space-y-sm p-lg rounded-xl bg-surface-container-low/30 border border-outline-variant/20">
+                            <label class="font-bold text-sm text-on-surface flex items-center gap-sm" for="admin-wa">
+                                <span class="material-symbols-outlined text-[18px] text-primary">admin_panel_settings</span>
+                                Admin WhatsApp
+                            </label>
+                            <p class="text-xs text-on-surface-variant">Menerima notifikasi bot (quota habis, error server).</p>
+                            <input id="admin-wa" type="text" placeholder="6281234567890"
+                                class="w-full px-md py-sm bg-white border border-outline-variant/50 rounded-xl text-sm text-on-surface placeholder:text-outline-variant/60 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all mt-sm" />
+                        </div>
 
-            <!-- QR Code Scanner -->
-            <section id="qr-section" class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg hidden" style="box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);">
-                <div class="flex items-center justify-between border-b border-surface-container-low pb-md mb-lg">
-                    <div class="flex items-center gap-sm">
-                        <span class="material-symbols-outlined text-primary">qr_code_scanner</span>
-                        <h2 class="font-title-md text-title-md">WhatsApp Pairing</h2>
-                    </div>
-                    <span id="qr-status" class="bg-tertiary-container text-on-tertiary-container px-sm py-xs rounded-full text-label-caps uppercase tracking-wider">Awaiting Scan</span>
-                </div>
-                <div class="flex flex-col items-center gap-lg py-lg">
-                    <div id="qr-container" class="p-md bg-white rounded-xl border border-outline-variant shadow-sm">
-                        <img id="qr-image" src="" alt="WhatsApp QR Code" class="w-56 h-56 hidden" />
-                        <div id="qr-placeholder" class="w-56 h-56 bg-surface-container-low flex items-center justify-center rounded-lg">
-                            <span class="material-symbols-outlined text-outline text-[64px]">hourglass_empty</span>
+                        <div class="space-y-sm p-lg rounded-xl bg-surface-container-low/30 border border-outline-variant/20">
+                            <label class="font-bold text-sm text-on-surface flex items-center gap-sm" for="gemini-key">
+                                <span class="material-symbols-outlined text-[18px] text-secondary">psychology</span>
+                                Gemini API Key
+                            </label>
+                            <p class="text-xs text-on-surface-variant">Isi jika ingin ganti tanpa restart server.</p>
+                            <div class="flex items-center gap-sm mt-sm">
+                                <input id="gemini-key" type="password" placeholder="AIzaSy..."
+                                    class="flex-1 px-md py-sm bg-white border border-outline-variant/50 rounded-xl text-sm text-on-surface placeholder:text-outline-variant/60 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all" />
+                                <button onclick="toggleGeminiVisibility()" class="w-10 h-10 flex items-center justify-center rounded-xl border border-outline-variant/50 hover:bg-surface-container-low transition-all shrink-0">
+                                    <span class="material-symbols-outlined text-[20px] text-on-surface-variant">visibility_off</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
-                    <div class="space-y-md text-center">
-                        <h3 class="font-body-md font-bold text-on-surface">Scan with WhatsApp</h3>
-                        <ul class="space-y-sm text-left">
-                            <li class="flex gap-sm">
-                                <span class="w-6 h-6 rounded-full bg-primary-container text-on-primary text-[12px] flex items-center justify-center flex-shrink-0">1</span>
-                                <p class="font-body-sm text-on-surface-variant">Open WhatsApp on your phone.</p>
-                            </li>
-                            <li class="flex gap-sm">
-                                <span class="w-6 h-6 rounded-full bg-primary-container text-on-primary text-[12px] flex items-center justify-center flex-shrink-0">2</span>
-                                <p class="font-body-sm text-on-surface-variant">Tap Menu or Settings and select Linked Devices.</p>
-                            </li>
-                            <li class="flex gap-sm">
-                                <span class="w-6 h-6 rounded-full bg-primary-container text-on-primary text-[12px] flex items-center justify-center flex-shrink-0">3</span>
-                                <p class="font-body-sm text-on-surface-variant">Point your phone to this screen to capture the code.</p>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </section>
 
-            <!-- Bot Configuration -->
-            <section class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg" style="box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);">
-                <div class="flex items-center justify-between border-b border-surface-container-low pb-md mb-lg">
-                    <div class="flex items-center gap-sm">
-                        <span class="material-symbols-outlined text-primary">psychology</span>
-                        <h2 class="font-title-md text-title-md">Bot Configuration</h2>
+                    <!-- Medify API Section -->
+                    <div class="mt-lg p-lg rounded-xl bg-surface-container-low/20 border border-outline-variant/20">
+                        <div class="flex items-center gap-md mb-lg">
+                            <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                <span class="material-symbols-outlined text-xl">api</span>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-on-surface">Medify API</h3>
+                                <p class="text-xs text-on-surface-variant">Kredensial koneksi SIMRS Medify</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+                            <div class="md:col-span-2 space-y-sm">
+                                <label class="font-semibold text-xs text-on-surface" for="medify-api-url">API URL</label>
+                                <input id="medify-api-url" type="text" placeholder="https://simrs.medify.id/api"
+                                    class="w-full px-md py-sm bg-white border border-outline-variant/50 rounded-xl text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all" />
+                            </div>
+                            <div class="space-y-sm">
+                                <label class="font-semibold text-xs text-on-surface" for="medify-api-email">Email</label>
+                                <input id="medify-api-email" type="text" placeholder="admin@hospital.com"
+                                    class="w-full px-md py-sm bg-white border border-outline-variant/50 rounded-xl text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all" />
+                            </div>
+                            <div class="space-y-sm">
+                                <label class="font-semibold text-xs text-on-surface" for="medify-api-password">Password</label>
+                                <div class="flex items-center gap-sm">
+                                    <input id="medify-api-password" type="password" placeholder="••••••••"
+                                        class="flex-1 px-md py-sm bg-white border border-outline-variant/50 rounded-xl text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all" />
+                                    <button onclick="toggleMedifyPasswordVisibility()" class="w-10 h-10 flex items-center justify-center rounded-xl border border-outline-variant/50 hover:bg-surface-container-low transition-all shrink-0">
+                                        <span class="material-symbols-outlined text-[20px] text-on-surface-variant">visibility_off</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <span id="nlp-badge" class="bg-secondary-container text-on-secondary-container px-sm py-xs rounded-full text-label-caps uppercase tracking-wider">Active Engine</span>
-                </div>
-                <div class="space-y-lg">
-                    <div class="space-y-xs">
-                        <label class="font-body-sm font-bold text-on-surface" for="admin-wa">Admin WhatsApp Number</label>
-                        <p class="text-on-surface-variant font-body-sm">Menerima notifikasi bot (quota habis, server down, dll). Cukup nomor saja.</p>
-                        <input id="admin-wa" type="text" placeholder="6281234567890"
-                            class="w-full px-md py-sm bg-surface-container-lowest border border-outline-variant rounded-lg font-body-sm text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all" />
-                        <p id="admin-wa-status" class="text-on-surface-variant font-body-sm hidden mt-xs"></p>
+
+                    <div class="mt-xl flex justify-end gap-md">
+                        <button id="btn-save-settings" onclick="saveSettings()"
+                            class="bg-primary text-white px-xl py-md rounded-xl font-bold text-sm hover:bg-primary-container transition-all flex items-center gap-sm shadow-md">
+                            <span class="material-symbols-outlined text-[20px]">save</span>
+                            Save Configuration
+                        </button>
                     </div>
-                    <div class="space-y-xs">
-                        <label class="font-body-sm font-bold text-on-surface" for="gemini-key">Gemini API Key</label>
-                        <p class="text-on-surface-variant font-body-sm">Kosongkan jika pakai key dari file .env. Diisi jika ingin ganti tanpa restart.</p>
+                </section>
+
+                <!-- WhatsApp Connection Section -->
+                <section id="qr-section" class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm hidden">
+                    <div class="flex items-center justify-between border-b border-surface-container-low pb-md mb-lg">
                         <div class="flex items-center gap-sm">
-                            <input id="gemini-key" type="password" placeholder="AIzaSy..."
-                                class="flex-1 px-md py-sm bg-surface-container-lowest border border-outline-variant rounded-lg font-body-sm text-on-surface placeholder:text-outline-variant focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all" />
-                            <button onclick="toggleGeminiVisibility()" class="p-sm rounded-lg hover:bg-surface-container-low transition-all" title="Show/Hide">
-                                <span class="material-symbols-outlined text-on-surface-variant">visibility_off</span>
+                            <span class="material-symbols-outlined text-primary">sync_saved_locally</span>
+                            <h2 class="font-title-md text-title-md">WhatsApp Connection</h2>
+                        </div>
+                        <span id="qr-status" class="bg-tertiary-container text-on-tertiary-container px-sm py-xs rounded-full text-label-caps uppercase tracking-wider">Awaiting Scan</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-xl">
+                        <div class="flex flex-col items-center gap-md">
+                            <div id="qr-container" class="p-md bg-white rounded-xl border border-outline-variant shadow-inner">
+                                <div id="qr-placeholder" class="w-48 h-48 bg-surface-container-low flex items-center justify-center rounded-xl">
+                                    <span class="material-symbols-outlined text-outline text-[64px]">hourglass_empty</span>
+                                </div>
+                                <img id="qr-image" src="" alt="WhatsApp QR Code" class="w-48 h-48 hidden" />
+                            </div>
+                            <p class="font-body-sm font-semibold text-primary">Scan to connect</p>
+                        </div>
+                        <div class="space-y-md">
+                            <h3 class="font-body-md font-bold text-on-surface">Instructions</h3>
+                            <ul class="space-y-sm">
+                                <li class="flex gap-sm">
+                                    <span class="w-6 h-6 rounded-full bg-primary-container text-on-primary text-[12px] flex items-center justify-center flex-shrink-0">1</span>
+                                    <p class="font-body-sm text-on-surface-variant">Open WhatsApp on your phone.</p>
+                                </li>
+                                <li class="flex gap-sm">
+                                    <span class="w-6 h-6 rounded-full bg-primary-container text-on-primary text-[12px] flex items-center justify-center flex-shrink-0">2</span>
+                                    <p class="font-body-sm text-on-surface-variant">Tap Menu or Settings and select Linked Devices.</p>
+                                </li>
+                                <li class="flex gap-sm">
+                                    <span class="w-6 h-6 rounded-full bg-primary-container text-on-primary text-[12px] flex items-center justify-center flex-shrink-0">3</span>
+                                    <p class="font-body-sm text-on-surface-variant">Point your phone to this screen to capture the code.</p>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Right Column: Status & Control -->
+            <div class="lg:col-span-4 space-y-gutter">
+                <!-- Connection Status Card -->
+                <section class="bg-surface-container-highest rounded-xl p-lg border border-primary-container/20 shadow-sm">
+                    <div class="flex items-center gap-sm mb-lg">
+                        <span class="material-symbols-outlined text-secondary">settings_phone</span>
+                        <h2 class="font-title-md text-title-md text-primary">Connection Status</h2>
+                    </div>
+                    <div class="flex flex-col items-center text-center mb-xl">
+                        <div class="relative mb-md">
+                            <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center border-4 border-secondary/20 shadow-inner">
+                                <span class="material-symbols-outlined text-[40px] text-secondary" style="font-variation-settings: 'FILL' 1;">phone_android</span>
+                            </div>
+                            <div id="status-dot" class="absolute bottom-0 right-0 w-6 h-6 bg-outline-variant border-4 border-surface-container-highest rounded-full transition-all"></div>
+                        </div>
+                        <p id="wa-status-badge" class="bg-surface-container-high text-on-surface-variant font-label-caps px-md py-xs rounded-full inline-block mb-xs transition-all">OFFLINE</p>
+                        <h3 id="wa-status-text" class="font-headline-lg text-on-surface">Not Connected</h3>
+                        <p id="system-instance" class="text-on-surface-variant font-body-sm">Instance: MED-BOT-01</p>
+                    </div>
+                    <div class="space-y-sm">
+                        <div class="flex items-center gap-sm bg-white/50 backdrop-blur-sm rounded-xl px-md py-sm border border-outline-variant/30 mb-md">
+                            <span class="material-symbols-outlined text-[18px] text-on-surface-variant">lan</span>
+                            <input id="bot-port" type="number" min="1024" max="65535" value="3001"
+                                class="w-full bg-transparent border-none text-on-surface font-bold text-center focus:outline-none focus:ring-0 p-0" />
+                            <span class="text-on-surface-variant text-xs">Port</span>
+                        </div>
+
+                        <button id="btn-start" onclick="startBot()"
+                            class="w-full bg-primary text-white py-sm rounded-xl font-body-md font-semibold hover:bg-primary-container transition-all shadow-md flex items-center justify-center gap-sm">
+                            <span class="material-symbols-outlined">play_arrow</span>
+                            Start Bot Engine
+                        </button>
+                        <button id="btn-stop" onclick="stopBot()"
+                            class="w-full bg-error text-white py-sm rounded-xl font-body-md font-semibold hover:bg-error-container transition-all shadow-md flex items-center justify-center gap-sm hidden">
+                            <span class="material-symbols-outlined">stop</span>
+                            Stop Bot Engine
+                        </button>
+                        <button id="btn-restart" onclick="restartBot()"
+                            class="w-full border border-primary text-primary py-sm rounded-xl font-body-md font-semibold hover:bg-primary/5 transition-all flex items-center justify-center gap-sm hidden">
+                            <span class="material-symbols-outlined">refresh</span>
+                            Restart Bot
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Activity Log -->
+                <section class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm">
+                    <div class="flex items-center justify-between mb-md">
+                        <span class="font-bold text-xs text-on-surface flex items-center gap-sm">
+                            <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+                            Activity Log
+                        </span>
+                        <span class="text-[10px] text-on-surface-variant font-semibold uppercase tracking-wider">Live</span>
+                    </div>
+                    <div id="status-log" class="bg-[#0d1117] rounded-xl p-md font-mono text-[11px] text-[#e6edf3] min-h-[200px] max-h-[300px] overflow-y-auto leading-relaxed border border-outline-variant/20 shadow-inner">
+                        <span class="text-[#8b949e]">// Bot status checking...</span>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div><!-- /panel-bot-settings -->
+
+    <!-- Knowledge Context Tab -->
+    <div id="panel-context" class="tab-panel hidden">
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-gutter">
+            <!-- Left Column: Upload Section -->
+            <div class="xl:col-span-4 space-y-gutter">
+                <section class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm">
+                    <div class="flex items-center gap-md mb-lg">
+                        <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                            <span class="material-symbols-outlined text-xl">upload_file</span>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-on-surface">Upload Dokumen</h2>
+                            <p class="text-xs text-on-surface-variant">Tambah pengetahuan untuk bot</p>
+                        </div>
+                    </div>
+
+                    <div id="drop-zone" class="relative group cursor-pointer" onclick="document.getElementById('context-file').click()">
+                        <div class="border-2 border-dashed border-outline-variant/50 rounded-2xl p-xl text-center hover:border-primary/50 hover:bg-primary/[0.02] transition-all">
+                            <div class="w-16 h-16 rounded-2xl bg-surface-container-low flex items-center justify-center mx-auto mb-md group-hover:scale-110 transition-all shadow-sm">
+                                <span class="material-symbols-outlined text-3xl text-outline group-hover:text-primary">cloud_upload</span>
+                            </div>
+                            <p class="text-sm font-bold text-on-surface">Klik atau tarik file</p>
+                            <p class="text-[10px] text-on-surface-variant mt-sm uppercase tracking-wider">DOCX, PDF, TXT — Max 50MB</p>
+                            <input id="context-file" type="file" class="hidden" accept=".docx,.pdf,.txt,.xlsx,.json" onchange="document.getElementById('file-name').textContent = this.files[0]?.name || ''" />
+                            <p id="file-name" class="text-xs font-bold text-primary mt-lg truncate"></p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-lg mt-lg">
+                        <div class="space-y-xs">
+                            <label class="font-bold text-xs text-on-surface uppercase tracking-wider" for="context-category">Kategori</label>
+                            <input id="context-category" type="text" placeholder="Contoh: Kebijakan, Tarif"
+                                class="w-full px-md py-sm bg-white border border-outline-variant/50 rounded-xl text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                        </div>
+                        <div class="space-y-xs">
+                            <label class="font-bold text-xs text-on-surface uppercase tracking-wider" for="context-tags">Tags</label>
+                            <input id="context-tags" type="text" placeholder="Contoh: bpjs, rawat-inap"
+                                class="w-full px-md py-sm bg-white border border-outline-variant/50 rounded-xl text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                        </div>
+                        <button id="btn-upload" onclick="uploadContext()"
+                            class="w-full bg-primary text-white py-sm rounded-xl font-bold text-sm hover:bg-primary-container transition-all flex items-center justify-center gap-sm shadow-md">
+                            <span class="material-symbols-outlined text-[20px]">upload</span>
+                            Unggah Pengetahuan
+                        </button>
+                        <p id="upload-status" class="text-xs text-center hidden"></p>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Right Column: Context List -->
+            <div class="xl:col-span-8 space-y-gutter">
+                <section class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm">
+                    <div class="flex flex-col gap-md mb-lg">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-md">
+                                <div class="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary">
+                                    <span class="material-symbols-outlined text-xl">menu_book</span>
+                                </div>
+                                <div>
+                                    <h2 class="text-lg font-bold text-on-surface">Daftar Pengetahuan</h2>
+                                    <p class="text-xs text-on-surface-variant">Dokumen yang tersimpan dalam sistem</p>
+                                </div>
+                            </div>
+                            <button onclick="loadContextList()" class="w-10 h-10 flex items-center justify-center rounded-xl border border-outline-variant/50 hover:bg-surface-container-low transition-all">
+                                <span class="material-symbols-outlined text-[20px]">refresh</span>
                             </button>
                         </div>
-                        <p id="gemini-key-status" class="text-on-surface-variant font-body-sm hidden mt-xs"></p>
-                    </div>
-                    <div class="pt-sm border-t border-surface-container-low">
-                        <button id="btn-save-settings" onclick="saveSettings()"
-                            class="bg-primary text-on-primary px-lg py-sm rounded-xl font-body-md font-semibold hover:opacity-90 transition-all flex items-center gap-sm">
-                            <span class="material-symbols-outlined text-[18px]">save</span>
-                            Save All Settings
-                        </button>
-                        <p id="save-status" class="text-on-surface-variant font-body-sm hidden mt-xs"></p>
-                    </div>
-                </div>
-            </section>
-        </div>
 
-        <!-- Right Column: Connection Status -->
-        <div class="lg:col-span-4 space-y-gutter">
-            <section class="bg-surface-container-highest rounded-xl p-lg border border-primary-container/20">
-                <div class="flex items-center gap-sm mb-lg">
-                    <span class="material-symbols-outlined text-secondary">settings_phone</span>
-                    <h2 class="font-title-md text-title-md text-primary">Connection Status</h2>
-                </div>
-                <div class="flex flex-col items-center text-center mb-xl">
-                    <div class="relative mb-md">
-                        <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center border-4 border-secondary/20">
-                            <span class="material-symbols-outlined text-[40px] text-secondary" style="font-variation-settings: 'FILL' 1;">phone_android</span>
+                        <!-- Search & Filter -->
+                        <div class="flex flex-col sm:flex-row gap-sm">
+                            <div class="relative flex-1">
+                                <span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
+                                <input type="text" id="search-context" oninput="filterContexts()" placeholder="Cari dokumen..."
+                                    class="w-full pl-xl pr-md py-sm bg-white border border-outline-variant/50 rounded-xl text-sm text-on-surface focus:ring-2 focus:ring-primary/30" />
+                            </div>
+                            <div class="flex gap-sm">
+                                <select id="filter-category" onchange="filterContexts()"
+                                    class="px-md py-sm bg-white border border-outline-variant/50 rounded-xl text-sm text-on-surface focus:ring-2 focus:ring-primary/30">
+                                    <option value="">Semua Kategori</option>
+                                </select>
+                                <select id="filter-status" onchange="filterContexts()"
+                                    class="px-md py-sm bg-white border border-outline-variant/50 rounded-xl text-sm text-on-surface focus:ring-2 focus:ring-primary/30">
+                                    <option value="">Semua Status</option>
+                                    <option value="active">Aktif</option>
+                                    <option value="inactive">Nonaktif</option>
+                                    <option value="processing">Proses</option>
+                                </select>
+                            </div>
                         </div>
-                        <div id="online-dot" class="absolute bottom-0 right-0 w-6 h-6 bg-outline border-4 border-surface-container-highest rounded-full"></div>
                     </div>
-                    <p id="online-badge" class="bg-surface-container-high text-on-surface-variant font-label-caps px-md py-xs rounded-full inline-block mb-xs">OFFLINE</p>
-                    <p id="bot-port-display" class="font-body-sm text-on-surface-variant">Port: --</p>
-                    <p id="instance-info" class="text-on-surface-variant font-body-sm">Instance: MED-BOT-01</p>
-                </div>
-                <div class="space-y-sm" id="action-buttons">
-                    <button onclick="startBot()"
-                        class="w-full bg-primary text-white py-sm rounded-xl font-body-md font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-sm">
-                        <span class="material-symbols-outlined">play_arrow</span>
-                        Start Bot
-                    </button>
-                    <button onclick="stopBot()"
-                        class="w-full border border-error text-error py-sm rounded-xl font-body-md font-semibold hover:bg-error-container transition-colors flex items-center justify-center gap-sm hidden">
-                        <span class="material-symbols-outlined">stop</span>
-                        Stop Bot
-                    </button>
-                </div>
-            </section>
+
+                    <div id="context-grid" class="grid grid-cols-1 md:grid-cols-2 gap-md">
+                        <!-- Cards injected by JS -->
+                        <div class="col-span-full text-center py-xl text-on-surface-variant text-sm italic">Memuat...</div>
+                    </div>
+                </section>
+            </div>
         </div>
     </div>
-</x-app-layout>
 
 <script>
     let pollInterval = null;
@@ -164,8 +297,8 @@
     function log(msg, type = 'info') {
         const logEl = document.getElementById('status-log');
         const time = new Date().toLocaleTimeString();
-        const colors = { info: 'text-on-surface', success: 'text-secondary', error: 'text-error', warn: 'text-tertiary' };
-        logEl.innerHTML += `<div class="${colors[type] || colors.info}">[${time}] ${msg}</div>`;
+        const colors = { info: 'text-[#e6edf3]', success: 'text-[#3fb950]', error: 'text-[#f85149]', warn: 'text-[#d29922]' };
+        logEl.innerHTML += `<div class="${colors[type] || colors.info}"><span class="text-[#8b949e]">[${time}]</span> ${msg}</div>`;
         logEl.scrollTop = logEl.scrollHeight;
     }
 
@@ -175,7 +308,7 @@
         const qrCode = data.qr_code;
         const port = data.port;
 
-        // Engine badge
+        // Engine badge (config section)
         const badge = document.getElementById('engine-badge');
         if (isRunning) {
             badge.className = 'bg-secondary-container text-on-secondary-container px-sm py-xs rounded-full text-label-caps uppercase tracking-wider';
@@ -185,34 +318,35 @@
             badge.textContent = 'Offline';
         }
 
-        // Online status
-        const onlineBadge = document.getElementById('online-badge');
-        const onlineDot = document.getElementById('online-dot');
-        const botPortDisplay = document.getElementById('bot-port-display');
+        // WhatsApp Status Card
+        const statusDot = document.getElementById('status-dot');
+        const waBadge = document.getElementById('wa-status-badge');
+        const waText = document.getElementById('wa-status-text');
 
         if (isLoggedIn) {
-            onlineBadge.className = 'bg-secondary/10 text-secondary font-label-caps px-md py-xs rounded-full inline-block mb-xs';
-            onlineBadge.textContent = 'ONLINE';
-            onlineDot.className = 'absolute bottom-0 right-0 w-6 h-6 bg-secondary border-4 border-surface-container-highest rounded-full';
+            statusDot.className = 'absolute bottom-0 right-0 w-6 h-6 bg-secondary border-4 border-surface-container-highest rounded-full transition-all';
+            waBadge.className = 'bg-secondary/10 text-secondary font-label-caps px-md py-xs rounded-full inline-block mb-xs transition-all';
+            waBadge.textContent = 'ONLINE';
+            waText.textContent = 'Connected';
+            waText.className = 'font-headline-lg text-secondary';
         } else if (isRunning) {
-            onlineBadge.className = 'bg-tertiary-container/30 text-tertiary font-label-caps px-md py-xs rounded-full inline-block mb-xs';
-            onlineBadge.textContent = 'CONNECTING';
-            onlineDot.className = 'absolute bottom-0 right-0 w-6 h-6 bg-tertiary border-4 border-surface-container-highest rounded-full';
+            statusDot.className = 'absolute bottom-0 right-0 w-6 h-6 bg-tertiary border-4 border-surface-container-highest rounded-full transition-all';
+            waBadge.className = 'bg-tertiary/10 text-tertiary font-label-caps px-md py-xs rounded-full inline-block mb-xs transition-all';
+            waBadge.textContent = 'LINKING';
+            waText.textContent = 'Awaiting Scan';
+            waText.className = 'font-headline-lg text-tertiary';
         } else {
-            onlineBadge.className = 'bg-surface-container-high text-on-surface-variant font-label-caps px-md py-xs rounded-full inline-block mb-xs';
-            onlineBadge.textContent = 'OFFLINE';
-            onlineDot.className = 'absolute bottom-0 right-0 w-6 h-6 bg-outline border-4 border-surface-container-highest rounded-full';
+            statusDot.className = 'absolute bottom-0 right-0 w-6 h-6 bg-outline-variant border-4 border-surface-container-highest rounded-full transition-all';
+            waBadge.className = 'bg-surface-container-high text-on-surface-variant font-label-caps px-md py-xs rounded-full inline-block mb-xs transition-all';
+            waBadge.textContent = 'OFFLINE';
+            waText.textContent = 'Not Connected';
+            waText.className = 'font-headline-lg text-on-surface';
         }
 
-        botPortDisplay.textContent = port ? `Port: ${port}` : 'Port: --';
-
-        // Start/Stop buttons visibility
+        // Buttons toggle
         document.getElementById('btn-start').classList.toggle('hidden', isRunning);
         document.getElementById('btn-stop').classList.toggle('hidden', !isRunning);
         document.getElementById('btn-restart').classList.toggle('hidden', !isRunning);
-        document.querySelectorAll('#action-buttons button').forEach(b => b.classList.toggle('hidden', false));
-        document.querySelector('#action-buttons button:first-child').classList.toggle('hidden', isRunning);
-        document.querySelector('#action-buttons button:last-child').classList.toggle('hidden', !isRunning);
         document.getElementById('bot-port').disabled = isRunning;
 
         // QR Code
@@ -223,29 +357,20 @@
 
         if (isRunning && !isLoggedIn) {
             qrSection.classList.remove('hidden');
-
             if (qrCode) {
                 qrImage.src = qrCode;
                 qrImage.classList.remove('hidden');
                 qrPlaceholder.classList.add('hidden');
-                qrStatus.className = 'bg-tertiary-container text-on-tertiary-container px-sm py-xs rounded-full text-label-caps uppercase tracking-wider';
-                qrStatus.textContent = 'Scan to connect';
-                log('QR Code ready - scan with WhatsApp', 'success');
+                qrStatus.className = 'bg-secondary-container text-on-secondary-container px-sm py-xs rounded-full text-label-caps uppercase tracking-wider';
+                qrStatus.textContent = 'Scan Now';
+                log('QR Code ready — scan with WhatsApp', 'success');
             } else {
                 qrImage.classList.add('hidden');
                 qrPlaceholder.classList.remove('hidden');
                 qrStatus.className = 'bg-surface-container-high text-on-surface-variant px-sm py-xs rounded-full text-label-caps uppercase tracking-wider';
-                qrStatus.textContent = 'Generating QR...';
+                qrStatus.textContent = 'Generating...';
                 log('Waiting for QR Code...', 'warn');
             }
-        } else if (isLoggedIn) {
-            qrSection.classList.remove('hidden');
-            qrImage.classList.add('hidden');
-            qrPlaceholder.classList.remove('hidden');
-            qrPlaceholder.innerHTML = '<span class="material-symbols-outlined text-secondary text-[64px]">check_circle</span>';
-            qrStatus.className = 'bg-secondary-container text-on-secondary-container px-sm py-xs rounded-full text-label-caps uppercase tracking-wider';
-            qrStatus.textContent = 'Connected';
-            log('WhatsApp connected successfully!', 'success');
         } else {
             qrSection.classList.add('hidden');
         }
@@ -264,89 +389,62 @@
             log('Invalid port number (1024-65535)', 'error');
             return;
         }
-
-        log(`Starting bot on port ${port}...`, 'info');
+        log(`Starting on port ${port}...`, 'info');
         document.getElementById('btn-start').disabled = true;
-
         fetch('/bot/start', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
             body: JSON.stringify({ port: parseInt(port) })
         })
         .then(r => r.json())
         .then(data => {
-            if (data.error) {
-                log(`Error: ${data.error}`, 'error');
-                document.getElementById('btn-start').disabled = false;
-            } else {
-                log(`Bot started successfully (PID: ${data.pid})`, 'success');
+            if (data.error) { log(`Error: ${data.error}`, 'error'); document.getElementById('btn-start').disabled = false; }
+            else {
+                log(`Started (PID: ${data.pid})`, 'success');
                 pollStatus();
                 if (pollInterval) clearInterval(pollInterval);
                 pollInterval = setInterval(pollStatus, 3000);
                 document.getElementById('btn-start').disabled = false;
             }
         })
-        .catch(err => {
-            log(`Failed to start: ${err.message}`, 'error');
-            document.getElementById('btn-start').disabled = false;
-        });
+        .catch(err => { log(`Failed: ${err.message}`, 'error'); document.getElementById('btn-start').disabled = false; });
     }
 
     function stopBot() {
-        if (!confirm('Are you sure you want to stop the bot?')) return;
-        log('Stopping bot...', 'warn');
-
-        fetch('/bot/stop', {
-            method: 'POST',
-            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
-        })
+        if (!confirm('Stop the bot?')) return;
+        log('Stopping...', 'warn');
+        fetch('/bot/stop', { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' } })
         .then(r => r.json())
         .then(data => {
             if (data.error) log(`Error: ${data.error}`, 'error');
-            else {
-                log('Bot stopped', 'info');
-                if (pollInterval) clearInterval(pollInterval);
-                pollStatus();
-            }
+            else { log('Stopped', 'info'); if (pollInterval) clearInterval(pollInterval); pollStatus(); }
         })
-        .catch(err => log(`Failed to stop: ${err.message}`, 'error'));
+        .catch(err => log(`Failed: ${err.message}`, 'error'));
     }
 
     function restartBot() {
         const port = document.getElementById('bot-port').value;
-        log('Restarting bot...', 'warn');
-
+        log('Restarting...', 'warn');
         fetch('/bot/restart', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
             body: JSON.stringify({ port: parseInt(port) })
         })
         .then(r => r.json())
         .then(data => {
             if (data.error) log(`Error: ${data.error}`, 'error');
-            else {
-                log('Bot restarted', 'success');
-                pollStatus();
-                if (pollInterval) clearInterval(pollInterval);
-                pollInterval = setInterval(pollStatus, 3000);
-            }
+            else { log('Restarted', 'success'); pollStatus(); if (pollInterval) clearInterval(pollInterval); pollInterval = setInterval(pollStatus, 3000); }
         })
-        .catch(err => log(`Failed to restart: ${err.message}`, 'error'));
+        .catch(err => log(`Failed: ${err.message}`, 'error'));
     }
 
     function loadSettings() {
         fetch('/bot/settings')
             .then(r => r.json())
             .then(data => {
-                if (data.admin_wa_number) {
-                    document.getElementById('admin-wa').value = data.admin_wa_number;
-                }
+                if (data.admin_wa_number) document.getElementById('admin-wa').value = data.admin_wa_number;
+                if (data.medify_api_url) document.getElementById('medify-api-url').value = data.medify_api_url;
+                if (data.medify_api_email) document.getElementById('medify-api-email').value = data.medify_api_email;
+                if (data.medify_api_password) document.getElementById('medify-api-password').placeholder = '•••••••• (tersimpan)';
             })
             .catch(() => {});
     }
@@ -356,60 +454,73 @@
         const btn = event.currentTarget;
         if (input.type === 'password') {
             input.type = 'text';
-            btn.innerHTML = '<span class="material-symbols-outlined text-on-surface-variant">visibility</span>';
+            btn.innerHTML = '<span class="material-symbols-outlined text-[20px] text-on-surface-variant">visibility</span>';
         } else {
             input.type = 'password';
-            btn.innerHTML = '<span class="material-symbols-outlined text-on-surface-variant">visibility_off</span>';
+            btn.innerHTML = '<span class="material-symbols-outlined text-[20px] text-on-surface-variant">visibility_off</span>';
+        }
+    }
+
+    function toggleMedifyPasswordVisibility() {
+        const input = document.getElementById('medify-api-password');
+        const btn = event.currentTarget;
+        if (input.type === 'password') {
+            input.type = 'text';
+            btn.innerHTML = '<span class="material-symbols-outlined text-[20px] text-on-surface-variant">visibility</span>';
+        } else {
+            input.type = 'password';
+            btn.innerHTML = '<span class="material-symbols-outlined text-[20px] text-on-surface-variant">visibility_off</span>';
         }
     }
 
     function saveSettings() {
         const number = document.getElementById('admin-wa').value.trim();
         const geminiKey = document.getElementById('gemini-key').value.trim();
+        const medifyUrl = document.getElementById('medify-api-url').value.trim();
+        const medifyEmail = document.getElementById('medify-api-email').value.trim();
+        const medifyPassword = document.getElementById('medify-api-password').value.trim();
         const btn = document.getElementById('btn-save-settings');
         const status = document.getElementById('save-status');
 
         btn.disabled = true;
-        btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">sync</span> Saving...';
-
+        btn.innerHTML = '<span class="material-symbols-outlined text-[20px]">sync</span> Menyimpan...';
         const body = {};
         if (number) body.admin_wa_number = number;
         if (geminiKey) body.gemini_api_key = geminiKey;
+        if (medifyUrl) body.medify_api_url = medifyUrl;
+        if (medifyEmail) body.medify_api_email = medifyEmail;
+        if (medifyPassword) body.medify_api_password = medifyPassword;
 
         fetch('/bot/settings', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
             body: JSON.stringify(body)
         })
         .then(r => r.json())
         .then(data => {
-            status.textContent = '✓ Settings saved' + (geminiKey ? ' — API key akan dipakai bot dalam 1 menit' : '');
-            status.className = 'text-secondary font-body-sm mt-xs';
+            status.textContent = '✓ Tersimpan' + (geminiKey ? ' — API key aktif dalam 1 menit' : '');
+            status.className = 'text-secondary text-sm font-semibold';
             status.classList.remove('hidden');
-            if (geminiKey) {
-                document.getElementById('gemini-key').value = '';
-                document.getElementById('gemini-key').placeholder = '•••••••• (saved)';
-            }
+            if (geminiKey) { document.getElementById('gemini-key').value = ''; document.getElementById('gemini-key').placeholder = '•••••••• (tersimpan)'; }
+            if (medifyPassword) { document.getElementById('medify-api-password').value = ''; document.getElementById('medify-api-password').placeholder = '•••••••• (tersimpan)'; }
             setTimeout(() => status.classList.add('hidden'), 5000);
         })
         .catch(err => {
-            status.textContent = '✗ Failed to save';
-            status.className = 'text-error font-body-sm mt-xs';
+            status.textContent = '✗ Gagal menyimpan';
+            status.className = 'text-error text-sm font-semibold';
             status.classList.remove('hidden');
         })
         .finally(() => {
             btn.disabled = false;
-            btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">save</span> Save All Settings';
+            btn.innerHTML = '<span class="material-symbols-outlined text-[20px]">save</span> Simpan Pengaturan';
         });
     }
 
-    // Initial load
     document.addEventListener('DOMContentLoaded', () => {
         pollStatus();
         loadSettings();
         pollInterval = setInterval(pollStatus, 5000);
     });
+
+    function escapeHtml(str) { if (!str) return ''; return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 </script>
+</x-app-layout>

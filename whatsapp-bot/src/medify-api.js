@@ -74,14 +74,49 @@ export async function getSchedules(doctorId) {
   return request('get', `/schedules?dokter_id=${doctorId}`);
 }
 
-export async function getQuota(doctorId) {
-  return request('get', `/data-kuota-layanan?dokter_id=${doctorId}`);
-}
-
 export async function getBedAvailability() {
   return request('get', '/ketersediaan-tempat-tidur');
 }
 
+export async function getPatientRegistrations(noRm) {
+  return request('get', `/get-pendaftaran-pasien?no_rm=${noRm}`);
+}
+
 export async function createBooking(data) {
   return request('post', '/booking-create', data);
+}
+
+export async function cancelBooking(data) {
+  return request('post', '/booking-cancel', data);
+}
+
+export async function editBooking(data) {
+  return request('post', '/booking-edit', data);
+}
+
+export async function getQueue(params) {
+  return request('get', `/antrian-pelayanan?poliklinik_id=${params.poliklinik_id}&tanggal=${params.tanggal}`);
+}
+
+export async function getMcuPackages(paketId) {
+  const query = paketId ? `?paket_id=${paketId}` : '';
+  return request('get', `/data-paket-mcu${query}`);
+}
+
+export async function getPatientInsurance(pasienId) {
+  return request('get', `/get-list-asuransi?pasien_id=${pasienId}`);
+}
+
+export async function getDoctorLeave(tanggal, dokterId) {
+  return request('get', `/get-jadwal-dokter-cuti?tanggal=${tanggal}&dokter_id=${dokterId}`);
+}
+
+export async function getServiceQuota(dokterId, poliklinikId) {
+  let query = `dokter_id=${dokterId}`;
+  if (poliklinikId) query += `&poliklinik_id=${poliklinikId}`;
+  return request('get', `/data-kuota-layanan?${query}`);
+}
+
+export async function getSchedulesByDate(tanggal) {
+  return request('get', `/get-jadwal-by-tanggal?tanggal=${tanggal}`);
 }

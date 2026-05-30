@@ -4,52 +4,73 @@
     </x-slot>
 
     <!-- Quota Alert Banner -->
-    <div id="quota-alert" class="hidden mb-6 p-4 bg-error-container border border-error rounded-xl flex items-center gap-3 shadow-sm">
+    <div id="quota-alert" class="hidden mb-lg p-lg bg-error-container border border-error rounded-xl flex items-center gap-md shadow-sm">
         <span class="material-symbols-outlined text-error text-2xl">warning</span>
         <div class="flex-1">
-            <p class="font-semibold text-error">Kuota Gemini API Habis</p>
-            <p class="text-sm text-on-surface-variant">Bot AI tidak bisa merespons pesan natural. Buat API key baru di <a href="https://aistudio.google.com" target="_blank" class="text-error underline">aistudio.google.com</a> atau upgrade ke paid tier.</p>
+            <p class="font-bold text-error">AI Quota Exhausted</p>
+            <p class="text-body-sm text-on-surface-variant">The AI engine cannot respond to natural messages. Please update your API key in settings or upgrade your plan.</p>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-lg">
         <!-- Main Content Area -->
-        <div class="xl:col-span-8 space-y-6">
+        <div class="xl:col-span-8 space-y-lg">
             
             <!-- Bot Status Metrics -->
-            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-md">
                 @php
                     $cards = [
-                        ['label' => 'Bot Status', 'id' => 'status', 'default' => 'Checking...'],
-                        ['label' => 'WhatsApp', 'id' => 'wa', 'default' => 'Checking...'],
-                        ['label' => 'AI Quota', 'id' => 'quota', 'default' => 'Checking...'],
-                        ['label' => 'Last Activity', 'id' => 'last-activity', 'default' => '--']
+                        ['label' => 'Bot Status', 'id' => 'status', 'icon' => 'smart_toy'],
+                        ['label' => 'WhatsApp', 'id' => 'wa', 'icon' => 'chat'],
+                        ['label' => 'AI Engine', 'id' => 'quota', 'icon' => 'psychology'],
+                        ['label' => 'Last Activity', 'id' => 'last-activity', 'icon' => 'history']
                     ];
                 @endphp
                 
                 @foreach($cards as $card)
-                <div class="bg-white rounded-xl border border-outline-variant p-5 transition-all duration-300 hover:shadow-md">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-[12px] font-bold text-on-surface-variant uppercase tracking-wider">{{ $card['label'] }}</span>
-                        <span id="{{ $card['id'] }}-indicator" class="w-2.5 h-2.5 rounded-full bg-outline-variant"></span>
+                <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg transition-all duration-300 hover:shadow-md">
+                    <div class="flex items-center justify-between mb-sm">
+                        <div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary">
+                            <span class="material-symbols-outlined">{{ $card['icon'] }}</span>
+                        </div>
+                        <span id="{{ $card['id'] }}-badge" class="px-sm py-xs rounded-full text-[10px] font-bold uppercase tracking-wider bg-outline-variant text-on-surface-variant">
+                            Checking
+                        </span>
                     </div>
-                    <p id="{{ $card['id'] }}-text" class="text-xl font-semibold text-on-surface">{{ $card['default'] }}</p>
+                    <div>
+                        <p class="text-label-caps text-on-surface-variant uppercase mb-xs">{{ $card['label'] }}</p>
+                        <p id="{{ $card['id'] }}-text" class="text-title-md font-bold text-on-surface truncate">--</p>
+                    </div>
                 </div>
                 @endforeach
             </div>
 
-            <!-- Recent Commands Section -->
-            <div class="bg-white rounded-xl border border-outline-variant p-6 shadow-sm">
-                <div class="flex items-center justify-between mb-5">
-                    <h2 class="text-lg font-bold text-on-surface flex items-center gap-2">
-                        <span class="material-symbols-outlined text-primary">history</span>
-                        Recent Commands
-                    </h2>
-                    <span class="text-xs text-on-surface-variant opacity-70">Auto-refreshing</span>
-                </div>
-                <div class="space-y-3">
-                    <div class="p-3 bg-surface-container-low rounded-lg border border-outline-variant/50">
-                        <p class="text-sm text-on-surface-variant italic">No recent command logs available.</p>
+            <!-- QR Code Section (Hidden by default) -->
+            <div id="qr-section" class="hidden bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm">
+                <div class="flex flex-col md:flex-row items-center gap-lg">
+                    <div id="qr-container" class="w-64 h-64 bg-white border border-outline-variant rounded-xl flex items-center justify-center p-md">
+                        <div class="animate-pulse flex flex-col items-center gap-sm">
+                            <span class="material-symbols-outlined text-4xl text-outline-variant">qr_code_2</span>
+                            <p class="text-body-sm text-on-surface-variant">Waiting for QR...</p>
+                        </div>
+                    </div>
+                    <div class="flex-1 text-center md:text-left">
+                        <h3 class="text-headline-lg font-bold text-primary mb-sm">Link WhatsApp</h3>
+                        <p class="text-body-md text-on-surface-variant mb-lg">Scan this QR code with your WhatsApp to connect the bot. Make sure your phone stays online.</p>
+                        <div class="flex flex-col gap-sm">
+                            <div class="flex items-center gap-sm text-on-surface">
+                                <span class="material-symbols-outlined text-primary">check_circle</span>
+                                <span class="text-body-sm font-semibold">Open WhatsApp on your phone</span>
+                            </div>
+                            <div class="flex items-center gap-sm text-on-surface">
+                                <span class="material-symbols-outlined text-primary">check_circle</span>
+                                <span class="text-body-sm font-semibold">Tap Menu or Settings and select Linked Devices</span>
+                            </div>
+                            <div class="flex items-center gap-sm text-on-surface">
+                                <span class="material-symbols-outlined text-primary">check_circle</span>
+                                <span class="text-body-sm font-semibold">Point your phone to this screen to capture the code</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -57,88 +78,163 @@
 
         <!-- Quick Actions Sidebar -->
         <div class="xl:col-span-4">
-            <div class="bg-white rounded-xl border border-outline-variant p-6 sticky top-24 shadow-sm">
-                <div class="flex items-center gap-3 mb-6">
-                    <div class="w-10 h-10 rounded-full bg-primary-container/20 flex items-center justify-center text-primary">
-                        <span class="material-symbols-outlined">bolt</span>
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg sticky top-24 shadow-sm">
+                <div class="flex items-center gap-md mb-lg">
+                    <div class="w-12 h-12 rounded-xl bg-primary-container/10 flex items-center justify-center text-primary">
+                        <span class="material-symbols-outlined text-2xl">bolt</span>
                     </div>
                     <div>
-                        <h2 class="text-lg font-bold text-on-surface">Quick Actions</h2>
-                        <p class="text-xs text-on-surface-variant">Immediate system controls</p>
+                        <h2 class="text-title-md font-bold text-on-surface">System Control</h2>
+                        <p class="text-body-sm text-on-surface-variant">Immediate bot actions</p>
                     </div>
                 </div>
                 
-                <div class="space-y-3">
+                <div class="space-y-md">
                     <button onclick="sendCommand('restart')"
-                        class="w-full bg-primary text-on-primary py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-sm">
+                        class="w-full flex items-center justify-center gap-sm bg-primary text-on-primary py-lg rounded-xl font-bold hover:bg-primary-container transition-all duration-200 shadow-sm">
                         <span class="material-symbols-outlined">refresh</span>
                         Restart Bot Engine
                     </button>
+                    
+                    <div class="grid grid-cols-2 gap-md">
+                        <button onclick="sendCommand('start')" id="start-btn"
+                            class="flex flex-col items-center justify-center gap-xs border border-outline-variant text-secondary p-md rounded-xl font-bold hover:bg-secondary-container/10 transition-all duration-200">
+                            <span class="material-symbols-outlined text-2xl">play_arrow</span>
+                            <span class="text-[10px] uppercase">Start Bot</span>
+                        </button>
+                        <button onclick="sendCommand('stop')" id="stop-btn"
+                            class="flex flex-col items-center justify-center gap-xs border border-outline-variant text-error p-md rounded-xl font-bold hover:bg-error-container/10 transition-all duration-200">
+                            <span class="material-symbols-outlined text-2xl">stop</span>
+                            <span class="text-[10px] uppercase">Stop Bot</span>
+                        </button>
+                    </div>
+
                     <button onclick="sendCommand('logout')"
-                        class="w-full border border-error text-error py-3 rounded-lg font-semibold hover:bg-error-container/10 transition-colors flex items-center justify-center gap-2">
+                        class="w-full flex items-center justify-center gap-sm border border-outline text-on-surface-variant py-md rounded-xl font-bold hover:bg-surface-container-low transition-all duration-200">
                         <span class="material-symbols-outlined">logout</span>
                         Logout WhatsApp
                     </button>
+                </div>
+
+                <div class="mt-xl pt-xl border-t border-outline-variant">
+                    <h3 class="text-label-caps text-on-surface-variant uppercase mb-md">System Info</h3>
+                    <div class="space-y-sm">
+                        <div class="flex justify-between items-center text-body-sm">
+                            <span class="text-on-surface-variant">Version</span>
+                            <span class="font-bold text-on-surface">v1.0.0</span>
+                        </div>
+                        <div class="flex justify-between items-center text-body-sm">
+                            <span class="text-on-surface-variant">Node Port</span>
+                            <span id="system-port" class="font-bold text-on-surface">--</span>
+                        </div>
+                        <div class="flex justify-between items-center text-body-sm">
+                            <span class="text-on-surface-variant">Process ID</span>
+                            <span id="system-pid" class="font-bold text-on-surface">--</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </x-app-layout>
-
-
-
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script>
+    let currentQr = null;
+
+    function formatTime(dateStr) {
+        if (!dateStr) return '--';
+        const date = new Date(dateStr);
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
     function updateStatus(data) {
-        const statusIndicator = document.getElementById('status-indicator');
+        const statusBadge = document.getElementById('status-badge');
         const statusText = document.getElementById('status-text');
-        const waIndicator = document.getElementById('wa-indicator');
+        const waBadge = document.getElementById('wa-badge');
         const waText = document.getElementById('wa-text');
-        const quotaIndicator = document.getElementById('quota-indicator');
+        const quotaBadge = document.getElementById('quota-badge');
         const quotaText = document.getElementById('quota-text');
-        const lastActivity = document.getElementById('last-activity');
+        const lastActivityBadge = document.getElementById('last-activity-badge');
+        const lastActivityText = document.getElementById('last-activity-text');
         const quotaAlert = document.getElementById('quota-alert');
+        const qrSection = document.getElementById('qr-section');
+        const qrContainer = document.getElementById('qr-container');
 
         // Bot running status
         if (data.is_running) {
-            statusIndicator.className = 'w-3 h-3 rounded-full bg-secondary';
-            statusText.textContent = 'Running';
-            statusText.className = 'font-display-lg text-display-lg text-secondary';
+            statusBadge.className = 'px-md py-xs rounded-full text-[10px] font-bold uppercase tracking-wider bg-secondary/10 text-secondary';
+            statusBadge.textContent = 'RUNNING';
+            statusText.textContent = 'Active';
+            document.getElementById('start-btn').disabled = true;
+            document.getElementById('start-btn').classList.add('opacity-50');
+            document.getElementById('stop-btn').disabled = false;
+            document.getElementById('stop-btn').classList.remove('opacity-50');
         } else {
-            statusIndicator.className = 'w-3 h-3 rounded-full bg-error';
+            statusBadge.className = 'px-md py-xs rounded-full text-[10px] font-bold uppercase tracking-wider bg-surface-container-high text-on-surface-variant';
+            statusBadge.textContent = 'OFFLINE';
             statusText.textContent = 'Stopped';
-            statusText.className = 'font-display-lg text-display-lg text-error';
+            document.getElementById('start-btn').disabled = false;
+            document.getElementById('start-btn').classList.remove('opacity-50');
+            document.getElementById('stop-btn').disabled = true;
+            document.getElementById('stop-btn').classList.add('opacity-50');
         }
 
         // WhatsApp login status
         if (data.is_logged_in) {
-            waIndicator.className = 'w-3 h-3 rounded-full bg-secondary';
+            waBadge.className = 'px-md py-xs rounded-full text-[10px] font-bold uppercase tracking-wider bg-secondary/10 text-secondary';
+            waBadge.textContent = 'ONLINE';
             waText.textContent = 'Connected';
-            waText.className = 'font-display-lg text-display-lg text-secondary';
+            qrSection.classList.add('hidden');
+            currentQr = null;
         } else {
-            waIndicator.className = 'w-3 h-3 rounded-full bg-error';
+            waBadge.className = 'px-md py-xs rounded-full text-[10px] font-bold uppercase tracking-wider bg-tertiary/10 text-tertiary';
+            waBadge.textContent = 'UNLINKED';
             waText.textContent = 'Disconnected';
-            waText.className = 'font-display-lg text-display-lg text-error';
+            
+            if (data.is_running && data.qr_code) {
+                qrSection.classList.remove('hidden');
+                if (currentQr !== data.qr_code) {
+                    currentQr = data.qr_code;
+                    qrContainer.innerHTML = '<canvas id="qrcode-canvas" class="w-full h-full"></canvas>';
+                    QRCode.toCanvas(document.getElementById('qrcode-canvas'), data.qr_code, {
+                        width: 256,
+                        margin: 2,
+                        color: {
+                            dark: '#00288e',
+                            light: '#ffffff'
+                        }
+                    });
+                }
+            } else {
+                qrSection.classList.add('hidden');
+            }
         }
 
         // AI Quota status
         if (data.quota_exhausted) {
-            quotaIndicator.className = 'w-3 h-3 rounded-full bg-error';
-            quotaText.textContent = 'Exhausted';
-            quotaText.className = 'font-display-lg text-display-lg text-error';
+            quotaBadge.className = 'px-sm py-xs rounded-full text-[10px] font-bold uppercase tracking-wider bg-error-container text-on-error-container';
+            quotaBadge.textContent = 'Exhausted';
+            quotaText.textContent = 'Unavailable';
             quotaAlert.classList.remove('hidden');
         } else {
-            quotaIndicator.className = 'w-3 h-3 rounded-full bg-secondary';
-            quotaText.textContent = 'Available';
-            quotaText.className = 'font-display-lg text-display-lg text-secondary';
+            quotaBadge.className = 'px-sm py-xs rounded-full text-[10px] font-bold uppercase tracking-wider bg-secondary-container text-on-secondary-container';
+            quotaBadge.textContent = 'Available';
+            quotaText.textContent = 'Ready';
             quotaAlert.classList.add('hidden');
         }
 
         // Last activity
+        lastActivityBadge.className = 'px-sm py-xs rounded-full text-[10px] font-bold uppercase tracking-wider bg-surface-container text-primary';
+        lastActivityBadge.textContent = 'Pulse';
         if (data.last_activity) {
-            lastActivity.textContent = new Date(data.last_activity).toLocaleTimeString();
+            lastActivityText.textContent = formatTime(data.last_activity);
         } else {
-            lastActivity.textContent = '--';
+            lastActivityText.textContent = '--:--';
         }
+
+        // System Info
+        document.getElementById('system-port').textContent = data.port || '--';
+        document.getElementById('system-pid').textContent = data.pid || '--';
     }
 
     function pollStatus() {
@@ -151,15 +247,22 @@
     function sendCommand(command) {
         if (!confirm(`Are you sure you want to ${command} the bot?`)) return;
 
-        fetch(`/bot/${command}`, { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' } })
+        let url = `/bot/${command}`;
+        if (command === 'restart') url = '/bot/restart'; // Force restart process for better reliability
+
+        fetch(url, { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' } })
             .then(response => response.json())
-            .then(data => alert(data.message))
+            .then(data => {
+                if (data.error) alert(data.error);
+                else alert(data.message);
+                pollStatus();
+            })
             .catch(() => alert('Failed to send command'));
     }
 
-    // Poll every 10 seconds
+    // Poll every 5 seconds
     document.addEventListener('DOMContentLoaded', () => {
         pollStatus();
-        setInterval(pollStatus, 10000);
+        setInterval(pollStatus, 5000); // Faster polling for dashboard
     });
 </script>

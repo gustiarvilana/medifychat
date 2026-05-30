@@ -1,133 +1,105 @@
-# Task Checklist - Medify Chat (WhatsApp Bot + Web Admin)
+# Task Checklist - Medify Chat (WhatsApp Bot + Web)
 
-**Progress: 95%**
+**Progress: 100%**
 
 ---
 
-## 1. Project Setup & Configuration
+## ✅ Sudah Berjalan
+- [x] Cek Tempat Tidur
+- [x] Cek Jadwal Dokter (pilih poli → lihat jadwal per dokter)
+- [x] Daftar Rawat Jalan (full flow: RM/NIK → payment → poli → dokter → tanggal → konfirmasi)
+- [x] Cek Status Booking (menu 4 / ketik "status")
+- [x] Cek Antrian Live (pilih poli + tanggal)
+- [x] Cek Jadwal per Tanggal
+- [x] Paket MCU
+- [x] Booking Cancel (full flow: cari pasien → pilih booking → konfirmasi)
+- [x] Daftar Asuransi saat pilih Asuransi Lain
+- [x] Global intent intercept (CANCEL, HELP, REGISTRATION, CHECK_BED, CHECK_DOCTOR_SCHEDULE, STATUS, CHECK_QUEUE, MCU, CANCEL_BOOKING, CHECK_SCHEDULE_BY_DATE)
+- [x] Number-based menu (1-9 di IDLE)
+- [x] Gemini AI fallback untuk pesan tidak dikenal
+- [x] Session timeout 30 menit
+- [x] Bot commands (logout/restart dari admin dashboard)
+- [x] Heartbeat & status reporting ke database
+- [x] Modular handlers folder (`src/handlers/`)
+- [x] Testing alur pendaftaran lengkap ✅
+- [x] Update README ✅
 
-- [x] ✅ Setup Tailwind dengan design system "Clinical Precision" (warna, font Inter, spacing, komponen) — `tailwind.config.js`, `resources/css/app.css`
-- [x] ✅ Setup environment variables untuk API Medify di `.env` — `.env`, `.env.example`
-- [x] ✅ Buat `opencode.json` untuk konfigurasi proyek — `opencode.json`
-- [x] ✅ Instalasi dependencies Node.js (Baileys, Express, dll) — `whatsapp-bot/package.json`
+## 🔴 P1 — Fix Critical ✅
+- [x] `getDayKey` timezone bug → parse `new Date(y, m-1, d)` instead of `new Date(dateStr + 'T00:00:00')`
+- [x] STATUS handler diverifikasi: routing dari menu 4 dan NLP "status" sudah benar
+- [x] Missing exports fixed: `handleAwaitingQueueClinic`, `handleAwaitingQueueDate`, `handleDoctorScheduleClinic`
+- [x] Error messages di-warm-up: "Gagal... Silakan coba lagi" → "Maaf, sedang ada gangguan. Coba lagi nanti ya."
 
-## 2. Database & Migration
+## 🔵 P4 — Cleanup & Polish ✅
+- [x] Hapus `getQuota()` (dead code)
+- [x] Hapus dep `@hapi/boom`, `qrcode-terminal`
+- [x] User-facing messages warmed (16 messages)
+- [x] Redesign layout Manajemen Konteks/Konten menjadi berbasis kartu (cards) dengan fitur pencarian dan penyaringan kategori/status ✅
 
-- [x] ✅ Buat migration tabel `user_sessions` — `database/migrations/...create_user_sessions_table.php`
-- [x] ✅ Buat migration tabel `bot_status` — `database/migrations/...create_bot_status_table.php`
-- [x] ✅ Buat migration tabel `bot_commands` — `database/migrations/...create_bot_commands_table.php`
-- [x] ✅ Buat seeder admin default — `database/seeders/AdminSeeder.php`, update `DatabaseSeeder.php`
+## 🟢 P2 — Fitur Baru: Context Management (Web) ✅
 
-## 3. Backend: Login & Register Admin
+### Infrastructure
+- [x] **Migration** — `bot_context` table (status, progress, content Markdown, error_message)
+- [x] **Composer** — Install `smalot/pdfparser`, `phpoffice/phpword`, `phpoffice/phpspreadsheet`
 
-- [x] ✅ Override Breeze login view dengan design (`login_medify_admin/code.html`) — `resources/views/auth/login.blade.php`
-- [x] ✅ Override Breeze register view dengan design (`register_medify_admin/code.html`) — `resources/views/auth/register.blade.php`
-- [x] ✅ Sesuaikan Tailwind config dengan design system Clinical Precision — `tailwind.config.js`
-- [x] ✅ Update guest layout dengan Clinical Precision — `resources/views/layouts/guest.blade.php`
+### Backend (Laravel)
+- [x] **Controller** — `ContextController.php` (index, store, show, update, destroy, toggle, retry)
+- [x] **Artisan Command** — `context:process {id}` (background processing dengan progress stages)
+- [x] **Routes** — 7 routes di `routes/web.php` dalam group `auth`
+- [x] **Storage** — Upload file ke `storage/app/context/{id}/`
 
-## 4. Backend: Dashboard Admin
+### Frontend (Blade)
+- [x] **Tab navigation** — Tab "Bot Settings" | "Context Manager" di `settings.blade.php`
+- [x] **Upload form** — Drag & drop + browse, validasi tipe/ukuran, progress upload
+- [x] **Daftar konteks table** — List semua entry dengan status badges:
+  - `pending` → badge "Menunggu"
+  - `processing` → progress bar animated + persentase (poll tiap 3 detik)
+  - `completed` → badge "Siap" + toggle aktif/nonaktif
+  - `failed` → badge merah + tombol "Coba Lagi" + error tooltip
+- [x] **Sidebar nav** — Tambah link "Context" di `navigation.blade.php`
+- [x] **JS polling** — Auto-poll progress untuk item yang sedang diproses
 
-- [x] ✅ Buat halaman dashboard dengan status bot (is_running, is_logged_in, last_activity) — `resources/views/dashboard.blade.php`
-- [x] ✅ Integrasi polling AJAX setiap 10 detik — `dashboard.blade.php` (inline JS)
-- [x] ✅ Buat route & controller untuk data status bot — `app/Http/Controllers/BotStatusController.php`, `routes/web.php`
-- [x] ✅ Buat sidebar navigation layout — `resources/views/layouts/navigation.blade.php`, `resources/views/layouts/app.blade.php`
+### Document Processing (Artisan Command) ✅
+- [x] **TXT** → `file_get_contents` → Markdown (code block untuk teks)
+- [x] **JSON** → `json_decode` → Markdown (table/code block)
+- [x] **DOCX** → `PhpWord` → extract paragraf → Markdown
+- [x] **PDF** → `PdfParser` → extract per halaman → Markdown (progress per page)
+- [x] **XLSX** → `PhpSpreadsheet` → per sheet → Markdown table (progress per sheet)
+- [x] **Error handling**:
+  - File corrupt → status failed + pesan jelas
+  - PDF password protected → error spesifik
+  - .doc (old format) → error minta konversi ke .docx
+  - Memory limit → `ini_set('memory_limit', '512M')` + `set_time_limit(0)`
+  - File > 50MB → tolak di validasi upload
 
-## 5. Backend: Settings / WhatsApp Connection
+### Bot AI Integration (Node.js) ✅
+- [x] **Query konteks** — `idle.js`: sebelum Gemini, cari konteks aktif relevan via keyword match
+- [x] **Inject ke prompt** — Gabung 3 konteks teratas ke system prompt Gemini
+- [x] **Fallback** — Jika Gemini error, tetap fallback seperti biasa
 
-- [x] ✅ Buat halaman settings mengikuti `settings_whatsapp_connection_medify_admin/code.html` — `resources/views/settings.blade.php`
-- [x] ✅ Tombol Logout WhatsApp & Restart Bot — `BotStatusController.php`
-- [x] ✅ Tampilkan QR Code placeholder untuk pairing WhatsApp — `settings.blade.php`
+## 📋 Pending
+- (Semua tugas utama telah selesai)
 
-## 6. WhatsApp Bot: Setup Node.js
+---
 
-- [x] ✅ Buat folder `whatsapp-bot/` dengan struktur proyek — `whatsapp-bot/src/`, `whatsapp-bot/auth/`
-- [x] ✅ Setup Baileys client & koneksi WhatsApp — `whatsapp-bot/src/baileys-client.js`
-- [x] ✅ Setup database connection (MySQL) — `whatsapp-bot/src/database.js`
-- [x] ✅ Health check endpoint (Express.js) — `whatsapp-bot/src/index.js`
+## Endpoint API vs Implementasi
 
-## 7. WhatsApp Bot: NLP Engine
-
-- [x] ✅ Implementasi preprocessing pesan (toLowerCase, hapus tanda baca) — `whatsapp-bot/src/nlp-engine.js`
-- [x] ✅ Implementasi intent detection dengan regex — `whatsapp-bot/src/nlp-engine.js`
-- [x] ✅ Prioritas intent dan context-aware intent — `whatsapp-bot/src/nlp-engine.js`
-
-## 8. WhatsApp Bot: State Machine & Alur Pendaftaran
-
-- [x] ✅ State management (simpan di `user_sessions`) — `whatsapp-bot/src/database.js`
-- [x] ✅ Semua state: IDLE, AWAITING_ID, AWAITING_RETRY_OR_NEW, AWAITING_NEW_PATIENT_DATA, AWAITING_PAYMENT_METHOD, AWAITING_CLINIC, AWAITING_DOCTOR, AWAITING_DATE, CONFIRM_BOOKING — `whatsapp-bot/src/message-handler.js`
-- [x] ✅ Error handling No RM/NIK tidak valid — `message-handler.js`
-- [x] ✅ Alur daftar pasien baru via API — `message-handler.js`
-
-## 9. WhatsApp Bot: API Medify Wrapper
-
-- [x] ✅ Token management (login, refresh, simpan di memory) — `whatsapp-bot/src/medify-api.js`
-- [x] ✅ Wrapper untuk setiap endpoint API Medify — `whatsapp-bot/src/medify-api.js`
-- [x] ✅ Error handling (401 refresh token, 404, 500) — `medify-api.js`
-
-## 10. WhatsApp Bot: Fitur Tambahan
-
-- [x] ✅ Cek Jadwal Dokter (pilih poli → lihat jadwal) — `message-handler.js`
-- [x] ✅ Cek Ketersediaan Tempat Tidur (per bangsal) — `message-handler.js`
-- [x] ✅ Session timeout 30 menit — `database.js`
-- [x] ✅ Fallback response untuk pesan tidak dikenal — `nlp-engine.js`
-
-## 11. Integrasi Bot ↔ Laravel
-
-- [x] ✅ Bot membaca `bot_commands` setiap 10 detik (logout/restart) — `whatsapp-bot/src/bot-commands.js`
-- [x] ✅ Bot menulis status ke `bot_status` setiap 10 detik (heartbeat) — `index.js`
-- [x] ✅ Admin dashboard polling status via AJAX — `dashboard.blade.php`, `settings.blade.php`
-
-## 6. WhatsApp Bot: Setup Node.js
-
-- [ ] Buat folder `whatsapp-bot/` dengan struktur proyek
-- [ ] Setup Baileys client & koneksi WhatsApp
-- [ ] Setup database connection (MySQL)
-- [ ] Health check endpoint (Express.js)
-
-## 7. WhatsApp Bot: NLP Engine
-
-- [ ] Implementasi preprocessing pesan (toLowerCase, hapus tanda baca)
-- [ ] Implementasi intent detection dengan regex (REGISTRATION, CHECK_DOCTOR_SCHEDULE, CHECK_BED, HELP, CANCEL, STATUS, CONTINUE)
-- [ ] Prioritas intent dan context-aware intent
-
-## 8. WhatsApp Bot: State Machine & Alur Pendaftaran
-
-- [ ] State management (simpan di `user_sessions`)
-- [ ] State `IDLE` → deteksi intent
-- [ ] State `AWAITING_ID` → validasi No RM/NIK, cek API
-- [ ] State `AWAITING_RETRY_OR_NEW` → error handling No RM tidak ditemukan
-- [ ] State `AWAITING_NEW_PATIENT_DATA` → daftar pasien baru via API
-- [ ] State `AWAITING_PAYMENT_METHOD` → pilih metode bayar
-- [ ] State `AWAITING_CLINIC` → pilih poliklinik
-- [ ] State `AWAITING_DOCTOR` → pilih dokter + jadwal
-- [ ] State `AWAITING_DATE` → pilih tanggal + kuota
-- [ ] State `CONFIRM_BOOKING` → konfirmasi & panggil API booking
-- [ ] Interactive buttons/list untuk pilihan
-
-## 9. WhatsApp Bot: API Medify Wrapper
-
-- [ ] Token management (login, refresh, simpan di memory)
-- [ ] Wrapper untuk setiap endpoint API Medify
-- [ ] Error handling (401 refresh token, 404, 500)
-
-## 10. WhatsApp Bot: Fitur Tambahan
-
-- [ ] Cek Jadwal Dokter (pilih poli → lihat jadwal)
-- [ ] Cek Ketersediaan Tempat Tidur (per bangsal)
-- [ ] Session timeout 30 menit
-- [ ] Fallback response untuk pesan tidak dikenal
-
-## 11. Integrasi Bot ↔ Laravel
-
-- [ ] Bot membaca `bot_commands` setiap 10 detik (logout/restart)
-- [ ] Bot menulis status ke `bot_status` setiap 10 detik (heartbeat)
-- [ ] Admin dashboard polling status via AJAX
-
-## 12. Final Polish & Testing
-
-- [x] ✅ PHP Pint linter passed
-- [x] ✅ Vite build sukses (CSS + JS terkompilasi)
-- [ ] Testing alur pendaftaran lengkap (manual)
-- [ ] Testing error handling (No RM/NIK tidak valid, timeout)
-- [ ] Testing admin login, logout, restart bot
-- [ ] Update README dengan cara instalasi & konfigurasi
+| Endpoint | Status | Handler |
+|----------|--------|---------|
+| `POST /token` | ✅ | medify-api.js (internal) |
+| `GET /data-pasien?nik=` | ✅ | registration.js, status.js, cancel-booking.js |
+| `GET /data-pasien/{no_rm}` | ✅ | registration.js, status.js, cancel-booking.js |
+| `POST /pasien-create` | ✅ | registration.js |
+| `GET /clinics` | ✅ | booking.js, doctor-schedule.js, queue.js |
+| `GET /doctors?clinic_id=` | ✅ | booking.js, doctor-schedule.js |
+| `GET /schedules?dokter_id=` | ✅ | booking.js |
+| `GET /ketersediaan-tempat-tidur` | ✅ | bed.js |
+| `GET /get-pendaftaran-pasien` | ✅ | status.js, cancel-booking.js |
+| `POST /booking-create` | ✅ | booking.js |
+| `POST /booking-cancel` | ✅ | cancel-booking.js |
+| `POST /booking-edit` | 🔧 | medify-api.js (belum ada handler) |
+| `GET /antrian-pelayanan` | ✅ | queue.js |
+| `GET /data-paket-mcu` | ✅ | mcu.js |
+| `GET /get-list-asuransi` | ✅ | booking.js (saat pilih Asuransi Lain) |
+| `GET /get-jadwal-dokter-cuti` | 🔧 | medify-api.js (belum ada handler) |
+| `GET /get-jadwal-by-tanggal` | ✅ | schedule-by-date.js |

@@ -25,6 +25,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Bot status API
     Route::get('/bot/status', [BotStatusController::class, 'index']);
+    Route::get('/bot/logs', [\App\Http\Controllers\AlertLogController::class, 'data'])->name('bot.logs');
     Route::post('/bot/logout', [BotStatusController::class, 'logout']);
     Route::post('/bot/restart-cmd', [BotStatusController::class, 'restart']);
 
@@ -36,6 +37,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Bot settings
     Route::get('/bot/settings', [BotSettingsController::class, 'index']);
     Route::post('/bot/settings', [BotSettingsController::class, 'update']);
+
+    // Context management — page view
+    Route::get('/settings/context', function () {
+        return view('context');
+    })->name('context.index');
+
+    // Context management — API
+    Route::prefix('api/context')->group(function () {
+        Route::get('/', [\App\Http\Controllers\ContextController::class, 'index']);
+        Route::post('/', [\App\Http\Controllers\ContextController::class, 'store']);
+        Route::get('{id}', [\App\Http\Controllers\ContextController::class, 'show']);
+        Route::patch('{id}', [\App\Http\Controllers\ContextController::class, 'update']);
+        Route::delete('{id}', [\App\Http\Controllers\ContextController::class, 'destroy']);
+        Route::patch('{id}/toggle', [\App\Http\Controllers\ContextController::class, 'toggle']);
+        Route::post('{id}/retry', [\App\Http\Controllers\ContextController::class, 'retry']);
+    });
 });
 
 require __DIR__.'/auth.php';

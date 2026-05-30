@@ -18,14 +18,24 @@
         @include('layouts.navigation')
 
         <main class="flex-1 md:ml-[280px]">
-            <!-- TopAppBar -->
+            <!-- TopAppBar Component -->
             <header class="flex justify-between items-center w-full px-margin py-base sticky top-0 z-50 bg-surface-container-lowest border-b border-outline-variant">
                 <div class="flex items-center gap-lg">
                     <span class="font-headline-lg text-headline-lg font-bold text-primary">{{ $header ?? 'Dashboard' }}</span>
+                    <div class="relative hidden sm:block">
+                        <span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-outline">search</span>
+                        <input class="pl-xl pr-md py-xs bg-surface-container-low border-none rounded-full text-body-sm focus:ring-2 focus:ring-primary w-64" placeholder="Search..." type="text"/>
+                    </div>
                 </div>
                 <div class="flex items-center gap-md">
-                    <div class="flex items-center gap-xs ml-base p-xs pr-sm rounded-full hover:bg-surface-container-low cursor-pointer transition-colors">
-                        <div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary font-bold text-sm">
+                    <button class="p-xs rounded-full hover:bg-surface-container-low transition-colors duration-200 cursor-pointer">
+                        <span class="material-symbols-outlined">notifications</span>
+                    </button>
+                    <button class="p-xs rounded-full hover:bg-surface-container-low transition-colors duration-200 cursor-pointer">
+                        <span class="material-symbols-outlined">help</span>
+                    </button>
+                    <div class="flex items-center gap-xs ml-base p-xs pr-sm rounded-full hover:bg-surface-container-low cursor-pointer transition-colors" onclick="window.location.href='{{ route('profile.edit') }}'">
+                        <div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary font-bold text-sm shadow-sm">
                             {{ substr(Auth::user()->name, 0, 1) }}
                         </div>
                         <span class="font-body-sm font-semibold hidden lg:block">{{ Auth::user()->name }}</span>
@@ -34,7 +44,7 @@
             </header>
 
             <!-- Page Content -->
-            <div class="p-margin max-w-7xl mx-auto">
+            <div class="p-margin max-w-7xl mx-auto pb-24">
                 {{ $slot }}
             </div>
         </main>

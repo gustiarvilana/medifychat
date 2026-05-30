@@ -1,29 +1,50 @@
 const intentPatterns = {
-  REGISTRATION: /\b(daftar|registrasi|booking|buat janji|pendaftaran|janji temu|mau daftar|butuh daftar)\b/i,
-  CHECK_DOCTOR_SCHEDULE: /\b(jadwal dokter|praktek dokter|dokter praktek|cek jadwal|dokter\s+\w+\s+praktek|kapan\s+\w+\s+praktek)\b/i,
-  CHECK_BED: /\b(tempat tidur|bed kosong|ketersediaan bed|rawat inap|ruang kosong|tempat tidur kosong|bed tersedia)\b/i,
-  HELP: /\b(tolong|bantuan|help|menu|can you help|apa yang bisa kamu bantu|perintah|panduan|halo|hallo|hello|helo|hai|pagi|siang|sore)\b/i,
-  CANCEL: /\b(batal|cancel|batalkan|urungkan|kembali|gak jadi)\b/i,
-  STATUS: /\b(status|cek booking|kode booking|cek antrian|status pendaftaran)\b/i,
-  CONTINUE: /\b(lanjut|continue|next|lanjutkan|ya|ok|oke)\b/i,
+  REGISTRATION:
+    /\b(daftar\s*(berobat|rawat\s*jalan|poli|periksa|dokter)?|registrasi|mau\s*(booking|daftar|buat\s*janji)|buat\s*(booking|janji|pendaftaran)|pendaftaran|janji\s*(temu|dokter|poli)?|booking\s*dokter|mau\s*berobat|butuh\s*(daftar|periksa|berobat)|saya\s*(mau\s*daftar|ingin\s*daftar|hendak\s*daftar)|daftarin|cara\s*daftar|mendaftar)\b/i,
+  CHECK_DOCTOR_SCHEDULE:
+    /\b(jadwal\s*(dokter|praktek|praktik)?|praktek\s*dokter|dokter\s*(praktek|praktik|jadwal)|cek\s*jadwal|dokter\s+\w+\s+(praktek|praktik)|kapan\s+\w+\s+(praktek|praktik|jadwal|prakteknya)|siapa\s*dokter|daftar\s*dokter|informasi\s*dokter)\b/i,
+  CHECK_BED:
+    /\b(tempat\s*tidur|bed\s*kosong|ketersediaan\s*(bed|tempat\s*tidur)|rawat\s*inap|ruang\s*kosong|tempat\s*tidur\s*kosong|bed\s*tersedia|kapasitas\s*bed|bangsal\s*kosong|info\s*(bed|tempat\s*tidur)|ada\s*kamar|kamar\s*kosong|cek\s*bed|cek\s*kamar|cek\s*tempat\s*tidur)\b/i,
+  CHECK_QUEUE:
+    /\b(antrian|antrean|nomor\s*antrian|cek\s*antrian|antrian\s*poli|nomor\s*berap[a]|panggilan|sudah\s*dipanggil|berap[a]\s*antrian|lihat\s*antrian)\b/i,
+  MCU:
+    /\b(mcu|medical\s*checkup|cek\s*mcu|paket\s*(mcu|medical)|medical\s*check.up|medical\s*check\s*up|check.?up|tes\s*kesehatan|medical\s*chek)\b/i,
+  CHECK_SCHEDULE_BY_DATE:
+    /\b(jadwal\s*(hari\s*ini|hari\s*ini\s*aja|besok|sekarang|tanggal|per\s*tanggal)?|dokter\s*(tersedia|available|praktek\s*hari\s*ini)?|praktek\s*(hari\s*ini|besok|tanggal)|cari\s*dokter|siapa\s*(saja|a?ja)\s*(dokter|praktek)|dokter\s*apa\s*(saja|a?ja)|jadwal\s+per\s+tanggal)\b/i,
+  HELP:
+    /\b(tolong|bantuan|help|menu|can\s*you\s*help|apa\s*((yang|a?ja)\s+)?(bisa|dapat)\s*dibantu|pilihan|perintah|panduan|fitur|halo|hallo|hello|helo|hii|hai|hay|pagi|siang|sore|malam|asisst|mulai|awal|gimana\s*cara|cara\s*pakai|bisa\s*apa)\b/i,
+  CANCEL:
+    /\b(batal|cancel|batalkan|urungkan|gak\s*jadi|nggak\s*jadi|tidak\s*jadi|hentikan|stop\s*(proses|session|bot)?|selesaiin|sudah\s*dulu)\b/i,
+  STATUS:
+    /\b(status|cek\s+(booking|pendaftaran|status)|kode\s*booking|cek\s*(status\s*)?booking\s*?(saya|ku)?|status\s*(pendaftaran|booking)?|lihat\s*(booking|status|pendaftaran)|info\s*booking|booking\s*(saya|ku)?\s*(bagaimana|gimana|status)|pendaftaran\s*(saya|ku)?|riwayat\s*(booking|pendaftaran)?)\b/i,
+  CANCEL_BOOKING:
+    /\b(batalkan\s*(booking|pendaftaran|janji)?|cancel\s*booking|hapus\s*(booking|pendaftaran|janji)|batalin|pembatalan|membatalkan|saya\s*mau\s*batal|ingin\s*batal)\b/i,
 };
 
 const INTENT_PRIORITY = [
+  'CANCEL_BOOKING',
   'CANCEL',
   'REGISTRATION',
   'CHECK_DOCTOR_SCHEDULE',
   'CHECK_BED',
+  'CHECK_QUEUE',
+  'MCU',
+  'CHECK_SCHEDULE_BY_DATE',
   'STATUS',
   'HELP',
 ];
 
 const INTENT_KEYWORDS = {
-  REGISTRATION: ['daftar', 'registrasi', 'booking', 'janji', 'pendaftaran'],
-  CHECK_DOCTOR_SCHEDULE: ['jadwal', 'praktek', 'dokter'],
-  CHECK_BED: ['bangsal', 'bed', 'rawat', 'inap', 'ketersediaan'],
-  HELP: ['tolong', 'bantuan', 'perintah', 'panduan', 'halo', 'hai', 'pagi', 'siang', 'sore'],
-  CANCEL: ['batal', 'cancel', 'batalkan', 'urungkan', 'kembali'],
-  STATUS: ['status', 'booking', 'antrian', 'kode'],
+  REGISTRATION: ['daftar', 'registrasi', 'janji', 'pendaftaran', 'berobat', 'booking', 'periksa'],
+  CHECK_DOCTOR_SCHEDULE: ['jadwal', 'praktek', 'praktik', 'dokter', 'prakteknya'],
+  CHECK_BED: ['bangsal', 'bed', 'rawat', 'inap', 'ketersediaan', 'kamar', 'tidur'],
+  CHECK_QUEUE: ['antrian', 'antrean', 'nomor', 'panggil', 'panggilan'],
+  MCU: ['mcu', 'medical', 'checkup', 'paket', 'kesehatan'],
+  CHECK_SCHEDULE_BY_DATE: ['jadwal', 'tanggal', 'tersedia', 'hari', 'besok', 'sekarang'],
+  HELP: ['tolong', 'bantuan', 'perintah', 'panduan', 'halo', 'hai', 'pagi', 'siang', 'sore', 'malam'],
+  CANCEL: ['batal', 'cancel', 'batalkan', 'urungkan', 'hentikan'],
+  CANCEL_BOOKING: ['batalkan', 'hapus', 'pembatalan'],
+  STATUS: ['status', 'booking', 'kode', 'riwayat'],
 };
 
 function levenshtein(a, b) {
@@ -53,36 +74,35 @@ function fuzzyDetectIntent(message) {
   const words = message.toLowerCase().split(/\s+/);
   let bestIntent = null;
   let bestScore = 0;
+  let bestExact = false;
 
   for (const [intent, keywords] of Object.entries(INTENT_KEYWORDS)) {
     let score = 0;
+    let exact = false;
     for (const word of words) {
       if (word.length < 3) continue;
       for (const keyword of keywords) {
         const threshold = getFuzzyThreshold(keyword.length);
-        if (levenshtein(word, keyword) <= threshold) {
+        const dist = levenshtein(word, keyword);
+        if (dist <= threshold) {
           score++;
+          if (dist === 0) exact = true;
         }
       }
     }
-    if (score > bestScore) {
+    if (score > bestScore || (score === bestScore && exact && !bestExact)) {
       bestScore = score;
       bestIntent = intent;
+      bestExact = exact;
     }
   }
 
-  return bestScore >= 1 ? bestIntent : null;
+  return bestScore >= 1 && bestExact ? bestIntent : null;
 }
 
 export function detectIntent(message, currentState = 'IDLE') {
   let cleaned = message.toLowerCase().replace(/[.,!?;:]/g, '');
   cleaned = cleaned.replace(/\s+/g, ' ').trim();
-
-  if (currentState === 'AWAITING_CONFIRMATION' && intentPatterns.CONTINUE.test(cleaned)) {
-    return 'CONTINUE';
-  }
-
-  if (intentPatterns.CANCEL.test(cleaned)) return 'CANCEL';
 
   for (const intent of INTENT_PRIORITY) {
     if (intentPatterns[intent].test(cleaned)) return intent;
@@ -96,11 +116,12 @@ export function detectIntent(message, currentState = 'IDLE') {
 
 export function getFallbackResponse() {
   return (
-    'Maaf, saya tidak mengerti. Ketik *Bantuan* untuk melihat menu yang tersedia.\n\n' +
-    'Anda bisa mengatakan:\n' +
-    '• "Daftar berobat" - Mendaftar rawat jalan\n' +
-    '• "Cek jadwal dokter" - Lihat jadwal praktek dokter\n' +
-    '• "Cek tempat tidur" - Ketersediaan bed kosong\n' +
-    '• "Bantuan" - Menampilkan menu ini'
+    'Halo! 😊 Saya asisten RS. Kalau ada yang bisa dibantu, silakan tulis saja ya.\n\n' +
+    'Ketik *0* untuk lihat menu lengkap.\n\n' +
+    'Beberapa contoh:\n' +
+    '• "Saya mau daftar berobat"\n' +
+    '• "Cek jadwal dokter penyakit dalam"\n' +
+    '• "Info tempat tidur kosong"\n' +
+    '• "Cek status booking saya"'
   );
 }

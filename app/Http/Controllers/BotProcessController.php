@@ -11,12 +11,13 @@ class BotProcessController extends Controller
 {
     public function start(Request $request): JsonResponse
     {
+        $status = DB::table('bot_status')->where('id', 1)->first();
+        
         $request->validate([
-            'port' => 'required|integer|min:1024|max:65535',
+            'port' => 'nullable|integer|min:1024|max:65535',
         ]);
 
-        $port = $request->input('port');
-        $status = DB::table('bot_status')->where('id', 1)->first();
+        $port = $request->input('port', $status->port ?? 3001);
 
         if ($status && $status->is_running && $status->pid) {
             if ($this->isProcessRunning($status->pid)) {

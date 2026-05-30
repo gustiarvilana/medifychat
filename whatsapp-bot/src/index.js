@@ -28,6 +28,20 @@ async function main() {
   // Set up message sender
   setSendMessage(sendMessage);
 
+  // Load Medify API config from database (overrides .env)
+  async function loadMedifyConfigFromDb() {
+    try {
+      const status = await getBotStatus();
+      if (status?.medify_api_url) config.medify.apiUrl = status.medify_api_url;
+      if (status?.medify_api_email) config.medify.email = status.medify_api_email;
+      if (status?.medify_api_password) config.medify.password = status.medify_api_password;
+    } catch (err) {
+      console.error('Failed to load Medify config from DB:', err.message);
+    }
+  }
+  await loadMedifyConfigFromDb();
+  console.log('Medify API URL:', config.medify.apiUrl);
+
   // Start WhatsApp bot
   const sock = await startBot();
 
@@ -41,6 +55,12 @@ async function main() {
   setInterval(async () => {
     try {
       const status = await getBotStatus();
+
+      // Refresh Medify API config from database periodically
+      if (status?.medify_api_url) config.medify.apiUrl = status.medify_api_url;
+      if (status?.medify_api_email) config.medify.email = status.medify_api_email;
+      if (status?.medify_api_password) config.medify.password = status.medify_api_password;
+
       await updateBotStatus({
         is_running: true,
         is_logged_in: isLoggedIn(),

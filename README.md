@@ -1,58 +1,172 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Medify Chat (Bot WhatsApp + Dashboard Admin)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Medify Chat adalah sistem terintegrasi yang menggabungkan Bot WhatsApp untuk pendaftaran pasien dan Dashboard Admin untuk manajemen serta monitoring.
 
-## About Laravel
+## 🚀 Fitur
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **Bot WhatsApp:**
+  - **1️⃣ Daftar Berobat** — Booking rawat jalan (pasien baru & lama).
+  - **2️⃣ Jadwal Dokter** — Cek jadwal praktek dokter per poliklinik.
+  - **3️⃣ Tempat Tidur** — Info ketersediaan bed kosong.
+  - **4️⃣ Status Booking** — Cek status pendaftaran yang sudah dibuat.
+  - **5️⃣ Paket MCU** — Informasi & harga paket medical check-up.
+  - **6️⃣ Antrian Poli** — Cek nomor antrian terkini per poli.
+  - **7️⃣ Jadwal per Tanggal** — Lihat jadwal semua dokter di tanggal tertentu.
+  - **8️⃣ Batalkan Booking** — Pembatalan pendaftaran yang sudah dikonfirmasi.
+  - **NLP Natural Language** — Didukung Gemini AI + fuzzy matching untuk memahami percakapan natural dan typo.
+- **Dashboard Admin:**
+  - Monitoring Status Bot Real-time.
+  - Manajemen Koneksi WhatsApp (Logout/Restart).
+  - Manajemen Konteks untuk Basis Pengetahuan AI (PDF, DOCX, XLSX, JSON, TXT).
+  - Log & Tracking Aktivitas Terperinci.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 💬 Skenario Chat
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### Mendaftar Rawat Jalan (Pasien Baru)
+```
+User: Saya mau daftar berobat
+Bot: 😊 Baik, saya bantu daftar rawat jalan!
+     Pasien Baru → Kirimkan NIK (16 digit)
+     Pasien Lama → Kirimkan No Rekam Medis (RM)
 
-## Learning Laravel
+User: 3674060903970004
+Bot: 🧑 Data ditemukan! Nama: BUDI SANTOSO
+     Sekarang pilih Metode Pembayaran:
+     1️⃣ Tunai
+     2️⃣ BPJS
+     3️⃣ Asuransi Lain
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+User: 1
+Bot: 💳 Metode Bayar: Tunai
+     Pilih Poliklinik tujuan:
+     1. POLI PENYAKIT DALAM
+     2. POLI UMUM
+     3. POLI ANAK
+     ...
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+User: 2
+Bot: 🏥 Poli: POLI UMUM
+     Pilih Dokter:
+     1. dr. Andi
+     2. dr. Siti
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+User: 1
+Bot: 🩺 Dokter: dr. Andi
+     📋 Konfirmasi Pendaftaran
+     👤 Nama: BUDI SANTOSO
+     🏥 Poli: POLI UMUM
+     🩺 Dokter: dr. Andi
+     📅 Tanggal: 2026-06-01
+     💳 Bayar: Tunai
+     Ketik KONFIRM untuk lanjut
 
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+User: KONFIRM
+Bot: 🎉 Pendaftaran Berhasil!
+     📌 Kode Booking: MED-12345
+     🚶 No. Antrian: 12
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### Cek Jadwal Dokter (Natural Language)
+```
+User: Jadwal dokter penyakit dalam
+Bot: 🏥 Poli PENYAKIT DALAM
+     Pilih dokter:
+     1. dr. Andi (Penyakit Dalam)
+     2. dr. Budi (Penyakit Dalam)
 
-## Contributing
+User: 1
+Bot: 🩺 dr. Andi
+     Jadwal Praktek:
+     • Senin: 08:00 - 12:00
+     • Rabu: 08:00 - 14:00
+     • Jumat: 13:00 - 16:00
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Cek Status Booking (Dengan Typo)
+```
+User: cek statuss bookingku
+Bot: 📋 Silakan masukkan No Rekam Medis (RM) Anda.
 
-## Code of Conduct
+User: 001234
+Bot: 📋 Status Booking Anda:
+     🏥 Poli: POLI UMUM
+     🩺 Dokter: dr. Andi
+     📅 Tanggal: 2026-06-01
+     ✅ Status: Terdaftar
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Cek Ketersediaan Tempat Tidur
+```
+User: Ada bed kosong?
+Bot: 🏥 Ketersediaan Tempat Tidur:
+     • Rawat Inap A: 5 bed tersedia
+     • Rawat Inap B: 2 bed tersedia
+     • ICU: 3 bed tersedia
+     • IGD: 4 bed tersedia
+```
 
-## Security Vulnerabilities
+### Cek Antrian Poli
+```
+User: Antrian poli umum
+Bot: 🚶 Antrian POLI UMUM — 01 Juni 2026
+     Nomor antrian saat ini: 08
+     Total terdaftar: 15 pasien
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Navigasi & Bantuan
+```
+User: 0
+Bot: 🤖 Halo! Saya Asisten Medify RS
+     Silakan pilih:
+     1️⃣ Daftar Berobat
+     2️⃣ Jadwal Dokter
+     ... (menu lengkap)
 
-## License
+User: batal
+Bot: ✅ Proses dibatalkan.
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## 🛠️ Tech Stack
+
+- **Backend:** Laravel 11, MySQL.
+- **Bot Engine:** Node.js, `@whiskeysockets/baileys`.
+- **AI:** Google Gemini API.
+- **Integrasi:** Medify SIMRS API.
+
+## 📦 Instalasi
+
+### Prasyarat
+- PHP 8.3+
+- Node.js 20.x
+- MySQL 8.0
+- Composer
+
+### Setup Lengkap
+Jalankan perintah berikut dari root proyek untuk melakukan setup awal:
+```powershell
+composer run setup
+```
+
+## 🏃 Menjalankan Aplikasi
+
+### Dashboard Admin (Laravel)
+```powershell
+composer run dev
+```
+
+### Bot WhatsApp (Node.js)
+```powershell
+cd whatsapp-bot
+npm install
+npm run dev
+```
+
+## 🧪 Testing
+
+Untuk menjalankan testing Laravel:
+```powershell
+php artisan test
+```
+
+## 📄 Lisensi
+Proyek ini bersifat privat dan diperuntukkan bagi penggunaan internal RS Medify.

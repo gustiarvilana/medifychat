@@ -31,26 +31,44 @@ export async function getSession(waId) {
   return rows[0] || null;
 }
 
-export async function upsertSession(waId, currentState, formData = {}) {
+export async function upsertSession(waId, currentState, formData = {}, waName = null) {
   const existing = await getSession(waId);
   if (existing) {
+    const updateFields = ['current_state = ?', 'form_data = ?', 'last_activity = NOW()'];
+    const params = [currentState, JSON.stringify(formData)];
+    
+    if (waName) {
+      updateFields.push('wa_name = ?');
+      params.push(waName.length > 100 ? waName.slice(0, 100) : waName);
+    }
+    
+    params.push(waId);
     await execute(
-      'UPDATE user_sessions SET current_state = ?, form_data = ?, last_activity = NOW() WHERE wa_id = ?',
-      [currentState, JSON.stringify(formData), waId]
+      `UPDATE user_sessions SET ${updateFields.join(', ')} WHERE wa_id = ?`,
+      params
     );
   } else {
+    const truncated = waName ? (waName.length > 100 ? waName.slice(0, 100) : waName) : null;
     await execute(
-      'INSERT INTO user_sessions (wa_id, current_state, form_data) VALUES (?, ?, ?)',
-      [waId, currentState, JSON.stringify(formData)]
+      'INSERT INTO user_sessions (wa_id, wa_name, current_state, form_data) VALUES (?, ?, ?, ?)',
+      [waId, truncated, currentState, JSON.stringify(formData)]
     );
   }
 }
 
-export async function updateSessionState(waId, state) {
-  await execute(
-    'UPDATE user_sessions SET current_state = ?, last_activity = NOW() WHERE wa_id = ?',
-    [state, waId]
-  );
+export async function updateSessionState(waId, state, waName = null) {
+  if (waName) {
+    const truncated = waName.length > 100 ? waName.slice(0, 100) : waName;
+    await execute(
+      'UPDATE user_sessions SET current_state = ?, wa_name = ?, last_activity = NOW() WHERE wa_id = ?',
+      [state, truncated, waId]
+    );
+  } else {
+    await execute(
+      'UPDATE user_sessions SET current_state = ?, last_activity = NOW() WHERE wa_id = ?',
+      [state, waId]
+    );
+  }
 }
 
 export async function updateSessionData(waId, formData) {
@@ -94,6 +112,31 @@ export async function markCommandProcessed(id, success = true) {
     "UPDATE bot_commands SET status = ?, processed_at = NOW() WHERE id = ?",
     [success ? 'processed' : 'failed', id]
   );
+}
+
+export async function setMemory(sender, key, value) {
+  const phone = sender.split('@')[0];
+  await execute(
+    `INSERT INTO bot_memory (sender, key_name, value, updated_at) VALUES (?, ?, ?, NOW())
+     ON DUPLICATE KEY UPDATE value = ?, updated_at = NOW()`,
+    [phone, key, value, value]
+  );
+}
+
+export async function getMemory(sender, key) {
+  const phone = sender.split('@')[0];
+  const rows = await query('SELECT value FROM bot_memory WHERE sender = ? AND key_name = ?', [phone, key]);
+  return rows[0]?.value || null;
+}
+
+export async function getAllMemory(sender) {
+  const phone = sender.split('@')[0];
+  const rows = await query('SELECT key_name, value FROM bot_memory WHERE sender = ?', [phone]);
+  const result = {};
+  for (const row of rows) {
+    result[row.key_name] = row.value;
+  }
+  return result;
 }
 
 export async function cleanupExpiredSessions() {

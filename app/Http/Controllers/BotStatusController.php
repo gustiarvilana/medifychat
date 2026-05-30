@@ -11,6 +11,16 @@ class BotStatusController extends Controller
     public function index(): JsonResponse
     {
         $status = DB::table('bot_status')->where('id', 1)->first();
+        
+        $recentCommands = DB::table('bot_commands')
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get();
+
+        $recentActivity = DB::table('user_sessions')
+            ->orderBy('last_activity', 'desc')
+            ->limit(5)
+            ->get();
 
         return response()->json([
             'is_running' => $status->is_running ?? false,
@@ -20,6 +30,8 @@ class BotStatusController extends Controller
             'qr_code' => $status->qr_code ?? null,
             'pid' => $status->pid ?? null,
             'quota_exhausted' => $status->quota_exhausted ?? false,
+            'recent_commands' => $recentCommands,
+            'recent_activity' => $recentActivity,
         ]);
     }
 
