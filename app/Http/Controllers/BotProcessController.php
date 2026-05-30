@@ -12,12 +12,35 @@ class BotProcessController extends Controller
     public function start(Request $request): JsonResponse
     {
         $status = DB::table('bot_status')->where('id', 1)->first();
-        
+
         $request->validate([
             'port' => 'nullable|integer|min:1024|max:65535',
         ]);
 
         $port = $request->input('port', $status->port ?? 3001);
+
+        if ($this->isDockerMode()) {
+            if ($this->isDockerContainerRunning()) {
+                return response()->json(['error' => 'Bot is already running'], 409);
+            }
+
+            DB::table('bot_status')->where('id', 1)->update([
+                'is_running' => true,
+                'is_logged_in' => false,
+                'port' => $port,
+                'pid' => null,
+                'qr_code' => null,
+                'last_activity' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $this->dockerApiCall('POST', '/containers/medify-bot/start');
+
+            return response()->json([
+                'message' => 'Bot started successfully',
+                'port' => $port,
+            ]);
+        }
 
         if ($status && $status->is_running && $status->pid) {
             if ($this->isProcessRunning($status->pid)) {
@@ -152,6 +175,20 @@ class BotProcessController extends Controller
 
     public function stop(): JsonResponse
     {
+        if ($this->isDockerMode()) {
+            $this->dockerApiCall('POST', '/containers/medify-bot/stop');
+
+            DB::table('bot_status')->where('id', 1)->update([
+                'is_running' => false,
+                'is_logged_in' => false,
+                'pid' => null,
+                'qr_code' => null,
+                'updated_at' => now(),
+            ]);
+
+            return response()->json(['message' => 'Bot stopped successfully']);
+        }
+
         $status = DB::table('bot_status')->where('id', 1)->first();
 
         if (!$status || !$status->pid) {
@@ -189,6 +226,20 @@ class BotProcessController extends Controller
 
     public function restart(Request $request): JsonResponse
     {
+        if ($this->isDockerMode()) {
+            $this->dockerApiCall('POST', '/containers/medify-bot/restart');
+
+            DB::table('bot_status')->where('id', 1)->update([
+                'is_running' => true,
+                'is_logged_in' => false,
+                'pid' => null,
+                'qr_code' => null,
+                'updated_at' => now(),
+            ]);
+
+            return response()->json(['message' => 'Bot restarted successfully']);
+        }
+
         $this->stop();
         sleep(1);
         $status = DB::table('bot_status')->where('id', 1)->first();
@@ -225,6 +276,10 @@ class BotProcessController extends Controller
 
     private function isProcessRunning(int $pid): bool
     {
+        if ($this->isDockerMode()) {
+            return $this->isDockerContainerRunning();
+        }
+
         if (PHP_OS_FAMILY === 'Windows') {
             $output = [];
             exec("tasklist /FI \"PID eq {$pid}\" 2>NUL", $output, $code);
@@ -237,6 +292,10 @@ class BotProcessController extends Controller
 
     private function findBotPid(int $port): ?int
     {
+        if ($this->isDockerMode()) {
+            return null;
+        }
+
         if (PHP_OS_FAMILY === 'Windows') {
             $psPath = $this->findPowerShellPath();
             if ($psPath) {
@@ -271,8 +330,44 @@ class BotProcessController extends Controller
         }
     }
 
+    private function isDockerMode(): bool
+    {
+        return file_exists('/var/run/docker.sock');
+    }
+
+    private function dockerApiCall(string $method, string $endpoint): ?array
+    {
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => "http://localhost{$endpoint}",
+            CURLOPT_CUSTOMREQUEST => $method,
+            CURLOPT_UNIX_SOCKET_PATH => '/var/run/docker.sock',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 10,
+        ]);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode >= 200 && $httpCode < 300) {
+            return json_decode($response, true);
+        }
+
+        return null;
+    }
+
+    private function isDockerContainerRunning(): bool
+    {
+        $info = $this->dockerApiCall('GET', '/containers/medify-bot/json');
+        return $info && ($info['State']['Running'] ?? false);
+    }
+
     private function killBotProcesses(): void
     {
+        if ($this->isDockerMode()) {
+            return;
+        }
+
         if (PHP_OS_FAMILY === 'Windows') {
             $psPath = $this->findPowerShellPath();
             if ($psPath) {

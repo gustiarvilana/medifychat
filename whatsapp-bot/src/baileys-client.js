@@ -79,7 +79,20 @@ export async function startBot() {
       });
 
       if (isLoggedOut) {
+        console.log('Logged out, clearing auth for fresh QR...');
+        try {
+          const { readdirSync, unlinkSync } = await import('fs');
+          const { join } = await import('path');
+          const authDir = join(process.cwd(), 'auth');
+          for (const file of readdirSync(authDir)) {
+            unlinkSync(join(authDir, file));
+          }
+          console.log('Auth files cleared');
+        } catch (_) {}
         await db.updateBotStatus({ is_running: false });
+        setTimeout(() => {
+          startBot().catch(err => console.error('StartBot after logout failed:', err));
+        }, 3000);
       } else {
         console.log('Reconnecting in 5 seconds...');
         setTimeout(startBot, 5000);

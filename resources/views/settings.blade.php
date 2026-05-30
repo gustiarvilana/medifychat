@@ -8,6 +8,44 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
             <!-- Left Column: Configuration -->
             <div class="lg:col-span-8 space-y-gutter">
+                                <!-- WhatsApp Connection Section -->
+                <section id="qr-section" class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm hidden">
+                    <div class="flex items-center justify-between border-b border-surface-container-low pb-md mb-lg">
+                        <div class="flex items-center gap-sm">
+                            <span class="material-symbols-outlined text-primary">sync_saved_locally</span>
+                            <h2 class="font-title-md text-title-md">WhatsApp Connection</h2>
+                        </div>
+                        <span id="qr-status" class="bg-tertiary-container text-on-tertiary-container px-sm py-xs rounded-full text-label-caps uppercase tracking-wider">Awaiting Scan</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-xl">
+                        <div class="flex flex-col items-center gap-md">
+                            <div id="qr-container" class="p-md bg-white rounded-xl border border-outline-variant shadow-inner">
+                                <div id="qr-placeholder" class="w-48 h-48 bg-surface-container-low flex items-center justify-center rounded-xl">
+                                    <span class="material-symbols-outlined text-outline text-[64px]">hourglass_empty</span>
+                                </div>
+                                <img id="qr-image" src="" alt="WhatsApp QR Code" class="w-48 h-48 hidden" />
+                            </div>
+                            <p class="font-body-sm font-semibold text-primary">Scan to connect</p>
+                        </div>
+                        <div class="space-y-md">
+                            <h3 class="font-body-md font-bold text-on-surface">Instructions</h3>
+                            <ul class="space-y-sm">
+                                <li class="flex gap-sm">
+                                    <span class="w-6 h-6 rounded-full bg-primary-container text-on-primary text-[12px] flex items-center justify-center flex-shrink-0">1</span>
+                                    <p class="font-body-sm text-on-surface-variant">Open WhatsApp on your phone.</p>
+                                </li>
+                                <li class="flex gap-sm">
+                                    <span class="w-6 h-6 rounded-full bg-primary-container text-on-primary text-[12px] flex items-center justify-center flex-shrink-0">2</span>
+                                    <p class="font-body-sm text-on-surface-variant">Tap Menu or Settings and select Linked Devices.</p>
+                                </li>
+                                <li class="flex gap-sm">
+                                    <span class="w-6 h-6 rounded-full bg-primary-container text-on-primary text-[12px] flex items-center justify-center flex-shrink-0">3</span>
+                                    <p class="font-body-sm text-on-surface-variant">Point your phone to this screen to capture the code.</p>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
                 <!-- Bot Configuration Section -->
                 <section class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm">
                     <div class="flex items-center justify-between border-b border-surface-container-low pb-md mb-lg">
@@ -86,45 +124,6 @@
                             <span class="material-symbols-outlined text-[20px]">save</span>
                             Save Configuration
                         </button>
-                    </div>
-                </section>
-
-                <!-- WhatsApp Connection Section -->
-                <section id="qr-section" class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm hidden">
-                    <div class="flex items-center justify-between border-b border-surface-container-low pb-md mb-lg">
-                        <div class="flex items-center gap-sm">
-                            <span class="material-symbols-outlined text-primary">sync_saved_locally</span>
-                            <h2 class="font-title-md text-title-md">WhatsApp Connection</h2>
-                        </div>
-                        <span id="qr-status" class="bg-tertiary-container text-on-tertiary-container px-sm py-xs rounded-full text-label-caps uppercase tracking-wider">Awaiting Scan</span>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-xl">
-                        <div class="flex flex-col items-center gap-md">
-                            <div id="qr-container" class="p-md bg-white rounded-xl border border-outline-variant shadow-inner">
-                                <div id="qr-placeholder" class="w-48 h-48 bg-surface-container-low flex items-center justify-center rounded-xl">
-                                    <span class="material-symbols-outlined text-outline text-[64px]">hourglass_empty</span>
-                                </div>
-                                <img id="qr-image" src="" alt="WhatsApp QR Code" class="w-48 h-48 hidden" />
-                            </div>
-                            <p class="font-body-sm font-semibold text-primary">Scan to connect</p>
-                        </div>
-                        <div class="space-y-md">
-                            <h3 class="font-body-md font-bold text-on-surface">Instructions</h3>
-                            <ul class="space-y-sm">
-                                <li class="flex gap-sm">
-                                    <span class="w-6 h-6 rounded-full bg-primary-container text-on-primary text-[12px] flex items-center justify-center flex-shrink-0">1</span>
-                                    <p class="font-body-sm text-on-surface-variant">Open WhatsApp on your phone.</p>
-                                </li>
-                                <li class="flex gap-sm">
-                                    <span class="w-6 h-6 rounded-full bg-primary-container text-on-primary text-[12px] flex items-center justify-center flex-shrink-0">2</span>
-                                    <p class="font-body-sm text-on-surface-variant">Tap Menu or Settings and select Linked Devices.</p>
-                                </li>
-                                <li class="flex gap-sm">
-                                    <span class="w-6 h-6 rounded-full bg-primary-container text-on-primary text-[12px] flex items-center justify-center flex-shrink-0">3</span>
-                                    <p class="font-body-sm text-on-surface-variant">Point your phone to this screen to capture the code.</p>
-                                </li>
-                            </ul>
-                        </div>
                     </div>
                 </section>
             </div>

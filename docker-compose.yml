@@ -1,0 +1,86 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: medify-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-medify_secret}
+      MYSQL_DATABASE: ${DB_DATABASE:-medifychat}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: medify-app
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      APP_ENV: production
+      APP_DEBUG: false
+      APP_KEY: ${APP_KEY}
+      APP_URL: ${APP_URL:-http://localhost}
+
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: ${DB_DATABASE:-medifychat}
+      DB_USERNAME: root
+      DB_PASSWORD: ${DB_PASSWORD:-medify_secret}
+
+      LOG_CHANNEL: stderr
+      SESSION_DRIVER: file
+      CACHE_STORE: file
+      QUEUE_CONNECTION: sync
+    volumes:
+      - app_storage:/var/www/html/storage
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "${APP_PORT:-5001}:80"
+
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile.bot
+    container_name: medify-bot
+    restart: no
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: ${DB_PASSWORD:-medify_secret}
+      DB_NAME: medifychat
+
+      MEDIFY_API_URL: ${MEDIFY_API_URL}
+      MEDIFY_API_EMAIL: ${MEDIFY_API_EMAIL}
+      MEDIFY_API_PASSWORD: ${MEDIFY_API_PASSWORD}
+
+      BOT_SESSION_TIMEOUT: ${BOT_SESSION_TIMEOUT:-30}
+      BOT_HEARTBEAT_INTERVAL: ${BOT_HEARTBEAT_INTERVAL:-10000}
+      BOT_MESSAGE_DELAY: ${BOT_MESSAGE_DELAY:-3000}
+
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      ADMIN_WHATSAPP_NUMBER: ${ADMIN_WHATSAPP_NUMBER:-}
+      PORT: 3001
+    volumes:
+      - bot_auth:/app/auth
+    ports:
+      - "3001:3001"
+
+volumes:
+  mysql_data:
+  app_storage:
+  bot_auth:

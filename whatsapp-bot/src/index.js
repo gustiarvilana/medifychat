@@ -10,6 +10,30 @@ import { getPool, updateBotStatus, cleanupExpiredSessions, getBotStatus } from '
 
 const PORT = parseInt(process.argv[2] || process.env.PORT || '3001');
 
+async function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function waitForDb(retries = 30, delay = 2000) {
+  for (let i = 1; i <= retries; i++) {
+    try {
+      const pool = await getPool();
+      await pool.query('SELECT 1 FROM bot_status LIMIT 1');
+      console.log('Database tables ready');
+      return;
+    } catch (err) {
+      if (err.code === 'ER_NO_SUCH_TABLE' || err.code === 'ER_NO_DB_ERROR') {
+        console.log(`Waiting for database tables... (${i}/${retries})`);
+        await sleep(delay);
+      } else {
+        console.error(`DB check error: ${err.message}`);
+        await sleep(delay);
+      }
+    }
+  }
+  throw new Error('Database tables not ready after maximum retries');
+}
+
 async function main() {
   console.log(`Starting Medify WhatsApp Bot on port ${PORT}...`);
 
@@ -18,12 +42,15 @@ async function main() {
   const pidFile = path.join(__dirname, '..', 'bot.pid');
   fs.writeFileSync(pidFile, String(process.pid));
 
-  // Update port in database
-  await updateBotStatus({ port: PORT });
-
   // Initialize database pool
   await getPool();
   console.log('Database connected');
+
+  // Wait for Laravel migrations to complete (bot_status table)
+  await waitForDb();
+
+  // Update port in database
+  await updateBotStatus({ port: PORT });
 
   // Set up message sender
   setSendMessage(sendMessage);
