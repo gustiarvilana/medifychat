@@ -133,6 +133,35 @@ Bot: ✅ Proses dibatalkan.
 - **AI:** Google Gemini API.
 - **Integrasi:** Medify SIMRS API.
 
+## ⚙️ System Requirements
+
+### Opsi A — Docker (Direkomendasikan)
+| Komponen | Versi |
+|----------|-------|
+| Docker Engine | 24+ |
+| Docker Compose | v2 |
+| RAM minimal | 2 GB (4 GB disarankan) |
+| Ruang Disk | 5 GB |
+
+### Opsi B — Non-Docker (Windows / Linux Bare-metal)
+| Komponen | Versi Minimal |
+|----------|---------------|
+| **PHP** | 8.3+ (8.4 direkomendasikan) |
+| **Node.js** | 20.x LTS |
+| **MySQL** | 8.0 |
+| **Composer** | 2.x |
+| **npm** | 10+ |
+| **Ekstensi PHP** | `pdo_mysql`, `mbstring`, `xml`, `gd`, `zip`, `intl`, `bcmath`, `opcache` |
+| **RAM** | 4 GB |
+| **Ruang Disk** | 2 GB |
+
+### Port yang Digunakan
+| Port | Service | Default? |
+|------|---------|----------|
+| 5001 | Dashboard Admin (Laravel) | Bisa diubah via `APP_PORT` di `.env` |
+| 3001 | Bot WhatsApp Health Check | Bisa diubah via UI (Settings → Port) atau env `PORT` / argumen CLI |
+| 3307 | MySQL (Docker) | Bisa diubah via `docker-compose.yml` |
+
 ## 📦 Instalasi
 
 ### Prasyarat
