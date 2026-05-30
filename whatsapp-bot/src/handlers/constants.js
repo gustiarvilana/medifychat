@@ -1,29 +1,16 @@
 const HELP_TEXT =
-  '🤖 *Halo! Saya Asisten Medify RS* — Senang bisa membantu Anda 😊\n\n' +
-  'Silakan pilih salah satu di bawah ini, atau tulis langsung kebutuhan Anda dengan kata-kata sendiri.\n\n' +
-  '━━━ *PENDAFTARAN* ━━━\n' +
-  '1️⃣ *Daftar Berobat* — Booking rawat jalan\n' +
-  '   Contoh: "Saya mau daftar ke poli" atau "Booking dokter"\n\n' +
-  '━━━ *INFORMASI* ━━━\n' +
-  '2️⃣ *Jadwal Dokter* — Cek jadwal praktek per poli\n' +
-  '   Contoh: "Jadwal dokter penyakit dalam" atau "Cek jadwal"\n\n' +
-  '3️⃣ *Ketersediaan Tempat Tidur* — Info bed kosong\n' +
-  '   Contoh: "Ada tempat tidur kosong?" atau "Cek bed"\n\n' +
-  '4️⃣ *Status Booking* — Cek status pendaftaran Anda\n' +
-  '   Contoh: "Cek status booking saya" atau "Lihat status"\n\n' +
-  '5️⃣ *Paket Medical Check-Up* — Info & harga MCU\n' +
-  '   Contoh: "Info MCU" atau "Paket medical checkup"\n\n' +
-  '6️⃣ *Antrian Poli* — Cek nomor antrian terkini\n' +
-  '   Contoh: "Antrian poli umum" atau "Cek antrian"\n\n' +
-  '7️⃣ *Jadwal per Tanggal* — Lihat semua dokter praktik di tanggal tertentu\n' +
-  '   Contoh: "Dokter praktek hari ini" atau "Jadwal tanggal 5 Juni"\n\n' +
-  '━━━ *PENGELOLAAN* ━━━\n' +
-  '8️⃣ *Batalkan Booking* — Batalkan pendaftaran yang sudah dibuat\n' +
-  '   Contoh: "Saya mau batalkan booking" atau "Cancel booking"\n\n' +
-  '━━━ *BANTUAN* ━━━\n' +
-  '0️⃣ *Bantuan* — Tampilkan menu ini lagi\n' +
-  '💬 Atau tulis saja apa yang Anda butuhkan!\n\n' +
-  'Ketik *Batal* kapan saja untuk kembali ke menu utama.';
+  'Halo! 👋 Saya asisten dari *RS Bhayangkara Setukpa Sukabumi*, senang bisa membantu Anda.\n\n' +
+  'Yang bisa saya bantu:\n' +
+  '• *Daftar berobat* — booking rawat jalan\n' +
+  '• *Jadwal dokter* — cek jadwal praktek\n' +
+  '• *Info tempat tidur* — ketersediaan bed\n' +
+  '• *Status booking* — cek pendaftaran Anda\n' +
+  '• *Paket MCU* — info medical check-up\n' +
+  '• *Antrian poli* — cek nomor antrian\n' +
+  '• *Jadwal per tanggal* — dokter praktek hari tertentu\n' +
+  '• *Batalkan booking* — pembatalan pendaftaran\n\n' +
+  'Cukup tulis apa yang Anda butuhkan dengan kata-kata sendiri, ya 😊\n' +
+  'Contoh: \"Saya mau daftar ke poli\" atau \"Cek jadwal dokter\"';
 
 const MENU_NUMBERS = {
   '0': 'HELP',

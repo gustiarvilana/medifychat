@@ -116,12 +116,12 @@ export function detectIntent(message, currentState = 'IDLE') {
 
 export function getFallbackResponse() {
   return (
-    'Halo! 😊 Saya asisten RS. Kalau ada yang bisa dibantu, silakan tulis saja ya.\n\n' +
-    'Ketik *0* untuk lihat menu lengkap.\n\n' +
-    'Beberapa contoh:\n' +
-    '• "Saya mau daftar berobat"\n' +
-    '• "Cek jadwal dokter penyakit dalam"\n' +
-    '• "Info tempat tidur kosong"\n' +
-    '• "Cek status booking saya"'
+    'Maaf, saya kurang paham maksudnya. Bisa coba tulis ulang? 🙏\n\n' +
+    'Saya bisa bantu beberapa hal:\n' +
+    '• Daftar berobat rawat jalan\n' +
+    '• Cek jadwal dokter\n' +
+    '• Info tempat tidur kosong\n' +
+    '• Cek status booking\n\n' +
+    'Cukup tulis dengan kata-kata sendiri ya 😊'
   );
 }

@@ -67,8 +67,12 @@ export async function handleIdleState(sender, message) {
 
   if (GREATINGS.test(message) && !intent) {
     const greeting = userName
-      ? `Halo Kak *${userName}*! 👋 Senang bertemu lagi. Ada yang bisa saya bantu?\n\nKetik *0* untuk melihat menu.`
-      : HELP_TEXT;
+      ? `Halo Kak *${userName}*! 👋 Senang bertemu lagi. Ada yang bisa saya bantu hari ini?`
+      : `Halo! 👋 Saya asisten dari RS Bhayangkara Setukpa Sukabumi. Ada yang bisa saya bantu?\n\n` +
+        `Bisa langsung tulis saja ya, misalnya:\n` +
+        `• "Saya mau daftar berobat"\n` +
+        `• "Cek jadwal dokter penyakit dalam"\n` +
+        `• "Info tempat tidur kosong"`;
     await sendWithDelay(sender, greeting);
     return;
   }
@@ -117,15 +121,11 @@ export async function handleIdleState(sender, message) {
       break;
 
     case 'HELP':
-      if (userName) {
-        await sendWithDelay(sender, `Halo Kak *${userName}*! 👋 Ada yang bisa saya bantu?\n\n${HELP_TEXT}`);
-      } else {
-        await sendWithDelay(sender, HELP_TEXT);
-      }
+      await sendWithDelay(sender, HELP_TEXT);
       break;
 
     case 'CANCEL':
-      await sendWithDelay(sender, '✅ Tidak ada proses yang berjalan. Ketik *0* untuk melihat menu ya 😊');
+      await sendWithDelay(sender, '✅ Tidak ada proses yang berjalan. Ada yang bisa saya bantu lagi? 😊');
       break;
 
     default:
@@ -140,8 +140,8 @@ export async function handleIdleState(sender, message) {
         await sendWithDelay(sender, geminiReply);
       } else if (userName) {
         await sendWithDelay(sender,
-          `Halo Kak *${userName}*! 😊 Ada yang bisa saya bantu hari ini?\n\n` +
-          `Ketik *0* untuk melihat menu lengkap.`
+          `Halo Kak *${userName}*! 😊 Ada yang bisa saya bantu hari ini?\n` +
+          `Coba tulis saja kebutuhannya, misalnya daftar berobat atau cek jadwal dokter.`
         );
       } else if (contextContents) {
         await sendWithDelay(sender, buildContextResponse(contextContents));
