@@ -61,6 +61,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/', [\App\Http\Controllers\ContextController::class, 'index']);
         Route::post('/', [\App\Http\Controllers\ContextController::class, 'store']);
         Route::get('{id}', [\App\Http\Controllers\ContextController::class, 'show']);
+        Route::get('{id}/download', [\App\Http\Controllers\ContextController::class, 'download']);
         Route::patch('{id}', [\App\Http\Controllers\ContextController::class, 'update']);
         Route::delete('{id}', [\App\Http\Controllers\ContextController::class, 'destroy']);
         Route::patch('{id}/toggle', [\App\Http\Controllers\ContextController::class, 'toggle']);

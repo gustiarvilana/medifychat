@@ -29,6 +29,7 @@
 - [x] STATUS handler diverifikasi: routing dari menu 4 dan NLP "status" sudah benar
 - [x] Missing exports fixed: `handleAwaitingQueueClinic`, `handleAwaitingQueueDate`, `handleDoctorScheduleClinic`
 - [x] Error messages di-warm-up: "Gagal... Silakan coba lagi" → "Maaf, sedang ada gangguan. Coba lagi nanti ya."
+- [x] Database alignment: sinkronisasi `bot_status` table dengan `BotSettingsController` (tambah kolom `admin_wa_number` & `gemini_api_key`) ✅
 
 ## 🔵 P4 — Cleanup & Polish ✅
 - [x] Hapus `getQuota()` (dead code)
@@ -77,7 +78,8 @@
 - [x] **Inject ke prompt** — Gabung 3 konteks teratas ke system prompt Gemini
 - [x] **Fallback** — Jika Gemini error, tetap fallback seperti biasa
 
-## 📋 Pending
+- [x] Redesign welcome page: professional landing, hero section, feature grid, auth-aware CTA (Clinical Precision style) ✅
+- [x] Restrict file upload to .txt only ✅
 - (Semua tugas utama telah selesai)
 
 ---

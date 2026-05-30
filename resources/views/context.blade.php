@@ -48,8 +48,8 @@
                                 <span class="material-symbols-outlined text-3xl text-outline group-hover:text-primary">cloud_upload</span>
                             </div>
                             <p class="text-sm font-bold text-on-surface">Klik atau tarik file</p>
-                            <p class="text-[10px] text-on-surface-variant mt-sm uppercase tracking-wider">DOCX, PDF, TXT, XLSX, JSON — Maks 50MB</p>
-                            <input id="context-file" type="file" class="hidden" accept=".docx,.pdf,.txt,.xlsx,.json" onchange="document.getElementById('file-name').textContent = this.files[0]?.name || ''" />
+                            <p class="text-[10px] text-on-surface-variant mt-sm uppercase tracking-wider">TXT — Maks 50MB</p>
+                            <input id="context-file" type="file" class="hidden" accept=".txt" onchange="document.getElementById('file-name').textContent = this.files[0]?.name || ''" />
                             <p id="file-name" class="text-xs font-bold text-primary mt-lg truncate max-w-full px-sm"></p>
                         </div>
                     </div>
@@ -124,16 +124,59 @@
 
             <div class="p-lg">
                 <div id="context-grid" class="grid grid-cols-1 md:grid-cols-2 gap-lg">
-                    <div class="col-span-full text-center py-xl text-on-surface-variant text-sm">Memuat...</div>
                 </div>
             </div>
         </section>
     </div>
 
 </x-app-layout>
+<!-- Editor Modal -->
+    <div id="editor-modal" class="hidden fixed inset-0 bg-black/50 z-[200] flex items-center justify-center p-lg">
+        <div class="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl">
+            <div class="p-md border-b flex justify-between items-center">
+                <h3 class="font-bold text-lg" id="editor-title">Edit Konten</h3>
+                <button onclick="closeEditor()" class="text-outline hover:text-error"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <div class="flex-1 p-md overflow-hidden">
+                <textarea id="editor-content" class="w-full h-full p-sm border rounded-lg font-mono text-sm focus:ring-2 focus:ring-primary/30"></textarea>
+            </div>
+            <div class="p-md border-t flex justify-end gap-sm">
+                <button onclick="closeEditor()" class="px-md py-sm rounded-lg hover:bg-surface-container-low">Batal</button>
+                <button id="btn-save-editor" class="bg-primary text-white px-md py-sm rounded-lg font-bold hover:bg-primary-container">Simpan</button>
+            </div>
+        </div>
+    </div>
 
 <script>
-    let contextPollTimers = {};
+    let currentEditId = null;
+
+    function openEditor(id) {
+        currentEditId = id;
+        fetch(`/api/context/${id}`)
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('editor-title').textContent = 'Edit: ' + data.title;
+                document.getElementById('editor-content').value = data.content || '';
+                document.getElementById('editor-modal').classList.remove('hidden');
+            });
+    }
+
+    function closeEditor() {
+        document.getElementById('editor-modal').classList.add('hidden');
+        currentEditId = null;
+    }
+
+    document.getElementById('btn-save-editor').addEventListener('click', () => {
+        const content = document.getElementById('editor-content').value;
+        fetch(`/api/context/${currentEditId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            body: JSON.stringify({ content: content })
+        }).then(() => {
+            closeEditor();
+            loadContextList();
+        });
+    });
     let allContexts = [];
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -162,22 +205,27 @@
     function loadContextList() {
         const grid = document.getElementById('context-grid');
         if (!allContexts.length) {
-            grid.innerHTML = '<div class="col-span-full text-center py-xl text-on-surface-variant text-sm">Memuat...</div>';
         }
 
-        fetch('/api/context')
-            .then(r => r.json())
-            .then(data => {
-                allContexts = data;
-                populateCategoryFilter(data);
-                filterContexts();
-                data.forEach(ctx => {
-                    if (ctx.status === 'processing') startContextPoll(ctx.id);
-                });
-            })
-            .catch(() => {
-                grid.innerHTML = '<div class="col-span-full text-center py-xl text-error text-sm">Gagal memuat data.</div>';
+        fetch('/api/context', {
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            allContexts = data;
+            populateCategoryFilter(data);
+            filterContexts();
+            data.forEach(ctx => {
+                if (ctx.status === 'processing') startContextPoll(ctx.id);
             });
+        })
+        .catch((err) => {
+            console.error('API Error:', err);
+            grid.innerHTML = '<div class="col-span-full text-center py-xl text-error text-sm">Gagal memuat data.</div>';
+        });
     }
 
     function populateCategoryFilter(data) {
@@ -195,10 +243,16 @@
     }
 
     function filterContexts() {
-        const query = document.getElementById('search-context').value.toLowerCase().trim();
-        const category = document.getElementById('filter-category').value;
-        const status = document.getElementById('filter-status').value;
+        const searchInput = document.getElementById('search-context');
+        const categoryInput = document.getElementById('filter-category');
+        const statusInput = document.getElementById('filter-status');
+        
+        const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+        const category = categoryInput ? categoryInput.value : '';
+        const status = statusInput ? statusInput.value : '';
+        
         const grid = document.getElementById('context-grid');
+        if (!grid) return;
 
         const filtered = allContexts.filter(ctx => {
             const matchesQuery = !query || ctx.title.toLowerCase().includes(query);
@@ -211,6 +265,7 @@
             }
             return matchesQuery && matchesCategory && matchesStatus;
         });
+        // ... (rest of the logic)
 
         if (!filtered.length) {
             grid.innerHTML = `
@@ -240,30 +295,53 @@
 
         const statusMap = {
             pending: ['bg-surface-container-high text-on-surface-variant', 'Menunggu'],
-            processing: ['bg-tertiary-container text-tertiary', 'Diproses'],
             completed: ctx.active
                 ? ['bg-secondary-container text-on-secondary-container', 'Aktif']
                 : ['bg-surface-container-high text-outline border border-outline-variant/30', 'Nonaktif'],
             failed: ['bg-error-container text-on-error-container', 'Gagal'],
         };
-        const [statusClass, statusLabel] = statusMap[ctx.status] || ['bg-surface-container-high text-on-surface-variant', ctx.status];
-
+        
+        let statusHtml = '';
+        let statusClass = 'bg-surface-container-high text-on-surface-variant';
+        let statusLabel = ctx.status;
+        
+        if (ctx.status === 'processing') {
+            statusHtml = `
+                <div class="w-full bg-surface-container rounded-full h-2 mt-sm">
+                    <div class="bg-primary h-2 rounded-full transition-all duration-300" style="width: ${ctx.progress}%"></div>
+                </div>
+            `;
+        } else {
+            const [cls, label] = statusMap[ctx.status] || ['bg-surface-container-high text-on-surface-variant', ctx.status];
+            statusClass = cls;
+            statusLabel = label;
+            statusHtml = `<span class="${statusClass} px-sm py-xs rounded-full text-label-caps">${statusLabel}</span>`;
+        }
         let actions = '';
         if (ctx.status === 'completed') {
             const toggleIcon = ctx.active ? 'toggle_on' : 'toggle_off';
             const toggleColor = ctx.active ? 'text-secondary' : 'text-outline';
             actions += `
-                <button onclick="toggleContext(${ctx.id})" class="p-sm rounded-lg hover:bg-surface-container-low transition-all shrink-0 border border-outline-variant/30 flex items-center justify-center bg-white shadow-sm" title="${ctx.active ? 'Nonaktifkan' : 'Aktifkan'}">
+                <button data-action="toggle" data-id="${ctx.id}" class="p-sm rounded-lg hover:bg-surface-container-low transition-all shrink-0 border border-outline-variant/30 flex items-center justify-center bg-white shadow-sm" title="${ctx.active ? 'Nonaktifkan' : 'Aktifkan'}">
                     <span class="material-symbols-outlined text-[20px] ${toggleColor}">${toggleIcon}</span>
+                </button>
+                <a href="/api/context/${ctx.id}/download" class="p-sm rounded-lg hover:bg-surface-container-low transition-all shrink-0 border border-outline-variant/30 flex items-center justify-center bg-white shadow-sm" title="Download">
+                    <span class="material-symbols-outlined text-[20px] text-primary">download</span>
+                </a>
+                <button data-action="edit" data-id="${ctx.id}" class="p-sm rounded-lg hover:bg-surface-container-low transition-all shrink-0 border border-outline-variant/30 flex items-center justify-center bg-white shadow-sm" title="Edit Metadata">
+                    <span class="material-symbols-outlined text-[20px] text-outline">edit</span>
+                </button>
+                <button data-action="edit-content" data-id="${ctx.id}" class="p-sm rounded-lg hover:bg-surface-container-low transition-all shrink-0 border border-outline-variant/30 flex items-center justify-center bg-white shadow-sm" title="Edit Konten">
+                    <span class="material-symbols-outlined text-[20px] text-primary">description</span>
                 </button>`;
         } else if (ctx.status === 'failed') {
             actions += `
-                <button onclick="retryContext(${ctx.id})" class="p-sm rounded-lg hover:bg-surface-container-low transition-all text-tertiary shrink-0 border border-outline-variant/30 flex items-center justify-center bg-white shadow-sm" title="Coba Lagi">
+                <button data-action="retry" data-id="${ctx.id}" class="p-sm rounded-lg hover:bg-surface-container-low transition-all text-tertiary shrink-0 border border-outline-variant/30 flex items-center justify-center bg-white shadow-sm" title="Coba Lagi">
                     <span class="material-symbols-outlined text-[20px]">refresh</span>
                 </button>`;
         }
         actions += `
-            <button onclick="deleteContext(${ctx.id}, '${escapeHtml(ctx.title)}')" class="p-sm rounded-lg hover:bg-surface-container-low transition-all text-error shrink-0 border border-outline-variant/30 flex items-center justify-center bg-white shadow-sm" title="Hapus">
+            <button data-action="delete" data-id="${ctx.id}" data-title="${escapeHtml(ctx.title)}" class="p-sm rounded-lg hover:bg-surface-container-low transition-all text-error shrink-0 border border-outline-variant/30 flex items-center justify-center bg-white shadow-sm" title="Hapus">
                 <span class="material-symbols-outlined text-[20px]">delete</span>
             </button>`;
 
@@ -275,7 +353,6 @@
                         <div class="bg-secondary rounded-full h-1.5 transition-all duration-300 animate-pulse" style="width:${ctx.progress}%"></div>
                     </div>
                     <div class="flex justify-between items-center mt-xs">
-                        <span class="text-[10px] text-secondary font-bold">Memproses...</span>
                         <span class="text-[10px] text-secondary font-bold">${ctx.progress}%</span>
                     </div>
                 </div>`;
@@ -387,13 +464,11 @@
         if (!fileInput.files.length) { status.textContent = 'Pilih file dulu.'; status.className = 'text-tertiary text-sm font-semibold'; status.classList.remove('hidden'); return; }
         const file = fileInput.files[0];
         if (file.size > 50 * 1024 * 1024) { status.textContent = 'File maksimal 50MB.'; status.className = 'text-error text-sm font-semibold'; status.classList.remove('hidden'); return; }
-        const allowed = ['docx', 'pdf', 'txt', 'xlsx', 'json'];
+        const allowed = ['txt'];
         const ext = file.name.split('.').pop().toLowerCase();
         if (!allowed.includes(ext)) { status.textContent = 'Tipe: ' + allowed.join(', '); status.className = 'text-error text-sm font-semibold'; status.classList.remove('hidden'); return; }
 
         btn.disabled = true;
-        btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">sync</span> Mengunggah...';
-        status.textContent = 'Mengunggah...';
         status.className = 'text-on-surface-variant text-sm';
         status.classList.remove('hidden');
 
@@ -407,7 +482,6 @@
         .then(data => {
             if (data.error) { status.textContent = '✗ ' + data.error; status.className = 'text-error text-sm font-semibold'; }
             else {
-                status.textContent = '✓ Terunggah, memproses...';
                 status.className = 'text-secondary text-sm font-semibold';
                 fileInput.value = '';
                 document.getElementById('file-name').textContent = '';
@@ -418,6 +492,38 @@
         })
         .catch(err => { status.textContent = '✗ ' + err.message; status.className = 'text-error text-sm font-semibold'; })
         .finally(() => { btn.disabled = false; btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">upload</span> Unggah'; });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadContextList();
+        
+        document.body.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-action]');
+            if (!btn) return;
+
+            const action = btn.dataset.action;
+            const id = btn.dataset.id;
+            
+            if (action === 'edit') editContext(id);
+            else if (action === 'edit-content') openEditor(id);
+            else if (action === 'toggle') toggleContext(id);
+            else if (action === 'retry') retryContext(id);
+            else if (action === 'delete') deleteContext(id, btn.dataset.title);
+        });
+    });
+
+    function editContext(id) {
+        const ctx = allContexts.find(c => c.id == id);
+        if (!ctx) return;
+        const newTitle = prompt('Edit Judul:', ctx.title);
+        const newCategory = prompt('Edit Kategori:', ctx.category || '');
+        if (newTitle === null) return;
+        
+        fetch(`/api/context/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            body: JSON.stringify({ title: newTitle, category: newCategory })
+        }).then(() => loadContextList());
     }
 
     function toggleContext(id) { fetch(`/api/context/${id}/toggle`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' } }).then(() => loadContextList()); }

@@ -16,35 +16,35 @@
         <a href="{{ route('dashboard') }}"
             class="flex items-center gap-md px-md py-sm cursor-pointer transition-all duration-200 rounded-xl {{ request()->routeIs('dashboard') ? 'bg-surface-container text-primary font-semibold shadow-sm' : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low' }}">
             <span class="material-symbols-outlined">dashboard</span>
-            <span class="font-body-sm text-body-sm">Overview</span>
+            <span class="font-body-sm text-body-sm">Beranda</span>
         </a>
         <a href="{{ route('settings') }}"
             class="flex items-center gap-md px-md py-sm cursor-pointer transition-all duration-200 rounded-xl {{ request()->routeIs('settings') && !request()->routeIs('context.*') ? 'bg-surface-container text-primary font-semibold shadow-sm' : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low' }}">
             <span class="material-symbols-outlined">smart_toy</span>
-            <span class="font-body-sm text-body-sm">WhatsApp Bot</span>
+            <span class="font-body-sm text-body-sm">Bot WhatsApp</span>
         </a>
         <a href="{{ route('context.index') }}"
             class="flex items-center gap-md px-md py-sm cursor-pointer transition-all duration-200 rounded-xl {{ request()->routeIs('context.*') ? 'bg-surface-container text-primary font-semibold shadow-sm' : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-low' }}">
             <span class="material-symbols-outlined">settings</span>
-            <span class="font-body-sm text-body-sm">Settings</span>
+            <span class="font-body-sm text-body-sm">Pengaturan</span>
         </a>
     </nav>
 
     <div class="mt-auto px-md space-y-xs">
         <button class="w-full bg-primary text-white py-sm rounded-xl font-body-sm font-semibold mb-lg flex items-center justify-center gap-xs shadow-md hover:bg-primary-container transition-all">
             <span class="material-symbols-outlined text-[20px]">add</span>
-            New Configuration
+            Konfigurasi Baru
         </button>
         <a href="#" class="flex items-center gap-md px-md py-sm cursor-pointer text-on-surface-variant hover:text-primary transition-all duration-200">
             <span class="material-symbols-outlined">help</span>
-            <span class="font-body-sm text-body-sm">Help Center</span>
+            <span class="font-body-sm text-body-sm">Pusat Bantuan</span>
         </a>
         <form method="POST" action="{{ route('logout') }}">
             @csrf
             <button type="submit"
                 class="w-full flex items-center gap-md px-md py-sm cursor-pointer text-on-surface-variant hover:text-primary transition-all duration-200">
                 <span class="material-symbols-outlined">logout</span>
-                <span class="font-body-sm text-body-sm">Logout</span>
+                <span class="font-body-sm text-body-sm">Keluar</span>
             </button>
         </form>
     </div>
@@ -55,7 +55,7 @@
     <a href="{{ route('dashboard') }}"
         class="flex flex-col items-center gap-xs {{ request()->routeIs('dashboard') ? 'text-primary' : 'text-on-surface-variant' }}">
         <span class="material-symbols-outlined {{ request()->routeIs('dashboard') ? 'font-bold' : '' }}">dashboard</span>
-        <span class="text-[10px] font-bold uppercase tracking-tighter">Home</span>
+        <span class="text-[10px] font-bold uppercase tracking-tighter">Beranda</span>
     </a>
     <a href="{{ route('settings') }}"
         class="flex flex-col items-center gap-xs {{ request()->routeIs('settings') ? 'text-primary' : 'text-on-surface-variant' }}">
@@ -65,11 +65,11 @@
     <a href="{{ route('context.index') }}"
         class="flex flex-col items-center gap-xs {{ request()->routeIs('context.*') ? 'text-primary' : 'text-on-surface-variant' }}">
         <span class="material-symbols-outlined {{ request()->routeIs('context.*') ? 'font-bold' : '' }}">settings</span>
-        <span class="text-[10px] font-bold uppercase tracking-tighter">Settings</span>
+        <span class="text-[10px] font-bold uppercase tracking-tighter">Pengaturan</span>
     </a>
     <a href="{{ route('profile.edit') }}"
         class="flex flex-col items-center gap-xs text-on-surface-variant">
         <span class="material-symbols-outlined">account_circle</span>
-        <span class="text-[10px] font-bold uppercase tracking-tighter">User</span>
+        <span class="text-[10px] font-bold uppercase tracking-tighter">Profil</span>
     </a>
 </nav>

@@ -3,6 +3,9 @@
         WhatsApp Bot
     </x-slot>
 
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-24 right-6 z-[100] flex flex-col gap-sm"></div>
+
     <!-- Bot & Connection Tab -->
     <div id="panel-bot-settings" class="tab-panel">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
@@ -73,9 +76,9 @@
                                 Gemini API Key
                             </label>
                             <p class="text-xs text-on-surface-variant">Isi jika ingin ganti tanpa restart server.</p>
-                            <div class="flex items-center gap-sm mt-sm">
+                            <div class="flex items-center gap-sm mt-sm w-full">
                                 <input id="gemini-key" type="password" placeholder="AIzaSy..."
-                                    class="flex-1 px-md py-sm bg-white border border-outline-variant/50 rounded-xl text-sm text-on-surface placeholder:text-outline-variant/60 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all" />
+                                    class="w-full px-md py-sm bg-white border border-outline-variant/50 rounded-xl text-sm text-on-surface placeholder:text-outline-variant/60 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all" />
                                 <button onclick="toggleGeminiVisibility()" class="w-10 h-10 flex items-center justify-center rounded-xl border border-outline-variant/50 hover:bg-surface-container-low transition-all shrink-0">
                                     <span class="material-symbols-outlined text-[20px] text-on-surface-variant">visibility_off</span>
                                 </button>
@@ -212,8 +215,8 @@
                                 <span class="material-symbols-outlined text-3xl text-outline group-hover:text-primary">cloud_upload</span>
                             </div>
                             <p class="text-sm font-bold text-on-surface">Klik atau tarik file</p>
-                            <p class="text-[10px] text-on-surface-variant mt-sm uppercase tracking-wider">DOCX, PDF, TXT — Max 50MB</p>
-                            <input id="context-file" type="file" class="hidden" accept=".docx,.pdf,.txt,.xlsx,.json" onchange="document.getElementById('file-name').textContent = this.files[0]?.name || ''" />
+                            <p class="text-[10px] text-on-surface-variant mt-sm uppercase tracking-wider">TXT — Max 50MB</p>
+                            <input id="context-file" type="file" class="hidden" accept=".txt" onchange="document.getElementById('file-name').textContent = this.files[0]?.name || ''" />
                             <p id="file-name" class="text-xs font-bold text-primary mt-lg truncate"></p>
                         </div>
                     </div>
@@ -443,6 +446,9 @@
                 if (data.admin_wa_number) document.getElementById('admin-wa').value = data.admin_wa_number;
                 if (data.medify_api_url) document.getElementById('medify-api-url').value = data.medify_api_url;
                 if (data.medify_api_email) document.getElementById('medify-api-email').value = data.medify_api_email;
+
+                // Handle masked secrets
+                if (data.gemini_api_key) document.getElementById('gemini-key').placeholder = '•••••••• (tersimpan)';
                 if (data.medify_api_password) document.getElementById('medify-api-password').placeholder = '•••••••• (tersimpan)';
             })
             .catch(() => {});
@@ -472,6 +478,18 @@
         }
     }
 
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `flex items-center gap-sm px-lg py-md rounded-xl shadow-lg border ${type === 'success' ? 'bg-secondary-container text-on-secondary-container border-secondary' : 'bg-error-container text-on-error-container border-error'}`;
+        toast.innerHTML = `
+            <span class="material-symbols-outlined">${type === 'success' ? 'check_circle' : 'error'}</span>
+            <span class="font-bold text-sm">${message}</span>
+        `;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 5000);
+    }
+
     function saveSettings() {
         const number = document.getElementById('admin-wa').value.trim();
         const geminiKey = document.getElementById('gemini-key').value.trim();
@@ -479,10 +497,10 @@
         const medifyEmail = document.getElementById('medify-api-email').value.trim();
         const medifyPassword = document.getElementById('medify-api-password').value.trim();
         const btn = document.getElementById('btn-save-settings');
-        const status = document.getElementById('save-status');
 
         btn.disabled = true;
         btn.innerHTML = '<span class="material-symbols-outlined text-[20px]">sync</span> Menyimpan...';
+        
         const body = {};
         if (number) body.admin_wa_number = number;
         if (geminiKey) body.gemini_api_key = geminiKey;
@@ -496,21 +514,20 @@
         })
         .then(r => r.json())
         .then(data => {
-            status.textContent = '✓ Tersimpan' + (geminiKey ? ' — API key aktif dalam 1 menit' : '');
-            status.className = 'text-secondary text-sm font-semibold';
-            status.classList.remove('hidden');
-            if (geminiKey) { document.getElementById('gemini-key').value = ''; document.getElementById('gemini-key').placeholder = '•••••••• (tersimpan)'; }
-            if (medifyPassword) { document.getElementById('medify-api-password').value = ''; document.getElementById('medify-api-password').placeholder = '•••••••• (tersimpan)'; }
-            setTimeout(() => status.classList.add('hidden'), 5000);
+            if (data.error) {
+                showToast(data.error, 'error');
+            } else {
+                showToast('Pengaturan berhasil disimpan!');
+                if (geminiKey) { document.getElementById('gemini-key').value = ''; document.getElementById('gemini-key').placeholder = '•••••••• (tersimpan)'; }
+                if (medifyPassword) { document.getElementById('medify-api-password').value = ''; document.getElementById('medify-api-password').placeholder = '•••••••• (tersimpan)'; }
+            }
         })
         .catch(err => {
-            status.textContent = '✗ Gagal menyimpan';
-            status.className = 'text-error text-sm font-semibold';
-            status.classList.remove('hidden');
+            showToast('Gagal menyimpan pengaturan.', 'error');
         })
         .finally(() => {
             btn.disabled = false;
-            btn.innerHTML = '<span class="material-symbols-outlined text-[20px]">save</span> Simpan Pengaturan';
+            btn.innerHTML = '<span class="material-symbols-outlined text-[20px]">save</span> Save Configuration';
         });
     }
 

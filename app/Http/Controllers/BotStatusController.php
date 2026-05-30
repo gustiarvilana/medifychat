@@ -22,6 +22,12 @@ class BotStatusController extends Controller
             ->limit(5)
             ->get();
 
+        // Check if API key exists
+        $hasApiKey = !empty($status->gemini_api_key);
+        
+        // Treat as exhausted if database says so or if no key is configured
+        $quotaExhausted = ($status->quota_exhausted ?? false) || !$hasApiKey;
+
         return response()->json([
             'is_running' => $status->is_running ?? false,
             'is_logged_in' => $status->is_logged_in ?? false,
@@ -29,7 +35,7 @@ class BotStatusController extends Controller
             'port' => $status->port ?? null,
             'qr_code' => $status->qr_code ?? null,
             'pid' => $status->pid ?? null,
-            'quota_exhausted' => $status->quota_exhausted ?? false,
+            'quota_exhausted' => $quotaExhausted,
             'recent_commands' => $recentCommands,
             'recent_activity' => $recentActivity,
         ]);

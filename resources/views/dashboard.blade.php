@@ -1,74 +1,74 @@
 <x-app-layout>
     <x-slot name="header">
-        Dashboard
+        Beranda
     </x-slot>
 
     <!-- Quota Alert Banner -->
-    <div id="quota-alert" class="hidden mb-lg p-lg bg-error-container border border-error rounded-xl flex items-center gap-md shadow-sm">
-        <span class="material-symbols-outlined text-error text-2xl">warning</span>
+    <div id="quota-alert" class="hidden mb-6 p-6 bg-[#fee2e2] border border-[#ef4444] rounded-xl flex items-center gap-4 shadow-sm">
+        <span class="material-symbols-outlined text-[#ef4444] text-2xl">warning</span>
         <div class="flex-1">
-            <p class="font-bold text-error">AI Quota Exhausted</p>
-            <p class="text-body-sm text-on-surface-variant">The AI engine cannot respond to natural messages. Please update your API key in settings or upgrade your plan.</p>
+            <p class="font-bold text-[#b91c1c]">Kuota AI Habis</p>
+            <p class="text-sm text-[#7f1d1d]">Mesin AI tidak dapat merespons pesan natural. Harap perbarui kunci API Anda di pengaturan atau tingkatkan paket Anda.</p>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 xl:grid-cols-12 gap-lg">
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
         <!-- Main Content Area -->
-        <div class="xl:col-span-8 space-y-lg">
+        <div class="xl:col-span-8 space-y-6">
             
             <!-- Bot Status Metrics -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-md">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 @php
                     $cards = [
-                        ['label' => 'Bot Status', 'id' => 'status', 'icon' => 'smart_toy'],
+                        ['label' => 'Status Bot', 'id' => 'status', 'icon' => 'smart_toy'],
                         ['label' => 'WhatsApp', 'id' => 'wa', 'icon' => 'chat'],
-                        ['label' => 'AI Engine', 'id' => 'quota', 'icon' => 'psychology'],
-                        ['label' => 'Last Activity', 'id' => 'last-activity', 'icon' => 'history']
+                        ['label' => 'Mesin AI', 'id' => 'quota', 'icon' => 'psychology'],
+                        ['label' => 'Aktivitas Terakhir', 'id' => 'last-activity', 'icon' => 'history']
                     ];
                 @endphp
                 
                 @foreach($cards as $card)
-                <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg transition-all duration-300 hover:shadow-md">
-                    <div class="flex items-center justify-between mb-sm">
-                        <div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary">
+                <div class="bg-white rounded-xl border border-[#e2e8f0] p-6 transition-all duration-300 hover:shadow-md">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-10 h-10 rounded-full bg-[#f1f5f9] flex items-center justify-center text-[#3755c3]">
                             <span class="material-symbols-outlined">{{ $card['icon'] }}</span>
                         </div>
-                        <span id="{{ $card['id'] }}-badge" class="px-sm py-xs rounded-full text-[10px] font-bold uppercase tracking-wider bg-outline-variant text-on-surface-variant">
-                            Checking
+                        <span id="{{ $card['id'] }}-badge" class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#e2e8f0] text-[#475569]">
+                            Memeriksa
                         </span>
                     </div>
                     <div>
-                        <p class="text-label-caps text-on-surface-variant uppercase mb-xs">{{ $card['label'] }}</p>
-                        <p id="{{ $card['id'] }}-text" class="text-title-md font-bold text-on-surface truncate">--</p>
+                        <p class="text-xs text-[#64748b] uppercase mb-1">{{ $card['label'] }}</p>
+                        <p id="{{ $card['id'] }}-text" class="text-lg font-bold text-[#0b1c30] truncate">--</p>
                     </div>
                 </div>
                 @endforeach
             </div>
 
             <!-- QR Code Section (Hidden by default) -->
-            <div id="qr-section" class="hidden bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm">
-                <div class="flex flex-col md:flex-row items-center gap-lg">
-                    <div id="qr-container" class="w-64 h-64 bg-white border border-outline-variant rounded-xl flex items-center justify-center p-md">
-                        <div class="animate-pulse flex flex-col items-center gap-sm">
-                            <span class="material-symbols-outlined text-4xl text-outline-variant">qr_code_2</span>
-                            <p class="text-body-sm text-on-surface-variant">Waiting for QR...</p>
+            <div id="qr-section" class="hidden bg-white rounded-xl border border-[#e2e8f0] p-6 shadow-sm">
+                <div class="flex flex-col md:flex-row items-center gap-6">
+                    <div id="qr-container" class="w-64 h-64 bg-white border border-[#e2e8f0] rounded-xl flex items-center justify-center p-4">
+                        <div class="animate-pulse flex flex-col items-center gap-2">
+                            <span class="material-symbols-outlined text-4xl text-[#cbd5e1]">qr_code_2</span>
+                            <p class="text-sm text-[#64748b]">Menunggu QR...</p>
                         </div>
                     </div>
                     <div class="flex-1 text-center md:text-left">
-                        <h3 class="text-headline-lg font-bold text-primary mb-sm">Link WhatsApp</h3>
-                        <p class="text-body-md text-on-surface-variant mb-lg">Scan this QR code with your WhatsApp to connect the bot. Make sure your phone stays online.</p>
-                        <div class="flex flex-col gap-sm">
-                            <div class="flex items-center gap-sm text-on-surface">
-                                <span class="material-symbols-outlined text-primary">check_circle</span>
-                                <span class="text-body-sm font-semibold">Open WhatsApp on your phone</span>
+                        <h3 class="text-xl font-bold text-[#3755c3] mb-2">Tautkan WhatsApp</h3>
+                        <p class="text-md text-[#444653] mb-6">Pindai kode QR ini dengan WhatsApp Anda untuk menghubungkan bot. Pastikan ponsel Anda tetap daring.</p>
+                        <div class="flex flex-col gap-2">
+                            <div class="flex items-center gap-2 text-[#0b1c30]">
+                                <span class="material-symbols-outlined text-[#3755c3]">check_circle</span>
+                                <span class="text-sm font-semibold">Buka WhatsApp di ponsel Anda</span>
                             </div>
-                            <div class="flex items-center gap-sm text-on-surface">
-                                <span class="material-symbols-outlined text-primary">check_circle</span>
-                                <span class="text-body-sm font-semibold">Tap Menu or Settings and select Linked Devices</span>
+                            <div class="flex items-center gap-2 text-[#0b1c30]">
+                                <span class="material-symbols-outlined text-[#3755c3]">check_circle</span>
+                                <span class="text-sm font-semibold">Ketuk Menu atau Pengaturan dan pilih Perangkat Tertaut</span>
                             </div>
-                            <div class="flex items-center gap-sm text-on-surface">
-                                <span class="material-symbols-outlined text-primary">check_circle</span>
-                                <span class="text-body-sm font-semibold">Point your phone to this screen to capture the code</span>
+                            <div class="flex items-center gap-2 text-[#0b1c30]">
+                                <span class="material-symbols-outlined text-[#3755c3]">check_circle</span>
+                                <span class="text-sm font-semibold">Arahkan ponsel Anda ke layar ini untuk memindai kode</span>
                             </div>
                         </div>
                     </div>
@@ -78,58 +78,58 @@
 
         <!-- Quick Actions Sidebar -->
         <div class="xl:col-span-4">
-            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg sticky top-24 shadow-sm">
-                <div class="flex items-center gap-md mb-lg">
-                    <div class="w-12 h-12 rounded-xl bg-primary-container/10 flex items-center justify-center text-primary">
+            <div class="bg-white rounded-xl border border-[#e2e8f0] p-6 sticky top-24 shadow-sm">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="w-12 h-12 rounded-xl bg-[#e5eeff] flex items-center justify-center text-[#3755c3]">
                         <span class="material-symbols-outlined text-2xl">bolt</span>
                     </div>
                     <div>
-                        <h2 class="text-title-md font-bold text-on-surface">System Control</h2>
-                        <p class="text-body-sm text-on-surface-variant">Immediate bot actions</p>
+                        <h2 class="text-lg font-bold text-[#0b1c30]">Kendali Sistem</h2>
+                        <p class="text-sm text-[#64748b]">Tindakan bot instan</p>
                     </div>
                 </div>
                 
-                <div class="space-y-md">
+                <div class="space-y-4">
                     <button onclick="sendCommand('restart')"
-                        class="w-full flex items-center justify-center gap-sm bg-primary text-on-primary py-lg rounded-xl font-bold hover:bg-primary-container transition-all duration-200 shadow-sm">
+                        class="w-full flex items-center justify-center gap-2 bg-[#3755c3] text-white py-3 rounded-lg font-bold hover:bg-[#2d46a3] transition-all duration-200 shadow-sm">
                         <span class="material-symbols-outlined">refresh</span>
-                        Restart Bot Engine
+                        Mulai Ulang Bot
                     </button>
                     
-                    <div class="grid grid-cols-2 gap-md">
+                    <div class="grid grid-cols-2 gap-4">
                         <button onclick="sendCommand('start')" id="start-btn"
-                            class="flex flex-col items-center justify-center gap-xs border border-outline-variant text-secondary p-md rounded-xl font-bold hover:bg-secondary-container/10 transition-all duration-200">
-                            <span class="material-symbols-outlined text-2xl">play_arrow</span>
-                            <span class="text-[10px] uppercase">Start Bot</span>
+                            class="flex flex-col items-center justify-center gap-1 border border-[#e2e8f0] text-[#006c49] p-4 rounded-lg font-bold hover:bg-[#ecfdf5] transition-all duration-200">
+                            <span class="material-symbols-outlined text-xl">play_arrow</span>
+                            <span class="text-[10px] uppercase">Mulai</span>
                         </button>
                         <button onclick="sendCommand('stop')" id="stop-btn"
-                            class="flex flex-col items-center justify-center gap-xs border border-outline-variant text-error p-md rounded-xl font-bold hover:bg-error-container/10 transition-all duration-200">
-                            <span class="material-symbols-outlined text-2xl">stop</span>
-                            <span class="text-[10px] uppercase">Stop Bot</span>
+                            class="flex flex-col items-center justify-center gap-1 border border-[#e2e8f0] text-[#ba1a1a] p-4 rounded-lg font-bold hover:bg-[#fef2f2] transition-all duration-200">
+                            <span class="material-symbols-outlined text-xl">stop</span>
+                            <span class="text-[10px] uppercase">Berhenti</span>
                         </button>
                     </div>
 
                     <button onclick="sendCommand('logout')"
-                        class="w-full flex items-center justify-center gap-sm border border-outline text-on-surface-variant py-md rounded-xl font-bold hover:bg-surface-container-low transition-all duration-200">
+                        class="w-full flex items-center justify-center gap-2 border border-[#94a3b8] text-[#444653] py-3 rounded-lg font-bold hover:bg-[#f1f5f9] transition-all duration-200">
                         <span class="material-symbols-outlined">logout</span>
-                        Logout WhatsApp
+                        Keluar WhatsApp
                     </button>
                 </div>
 
-                <div class="mt-xl pt-xl border-t border-outline-variant">
-                    <h3 class="text-label-caps text-on-surface-variant uppercase mb-md">System Info</h3>
-                    <div class="space-y-sm">
-                        <div class="flex justify-between items-center text-body-sm">
-                            <span class="text-on-surface-variant">Version</span>
-                            <span class="font-bold text-on-surface">v1.0.0</span>
+                <div class="mt-8 pt-6 border-t border-[#e2e8f0]">
+                    <h3 class="text-xs text-[#64748b] uppercase mb-4 tracking-wider">Info Sistem</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-[#64748b]">Versi</span>
+                            <span class="font-bold text-[#0b1c30]">v1.0.0</span>
                         </div>
-                        <div class="flex justify-between items-center text-body-sm">
-                            <span class="text-on-surface-variant">Node Port</span>
-                            <span id="system-port" class="font-bold text-on-surface">--</span>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-[#64748b]">Port Node</span>
+                            <span id="system-port" class="font-bold text-[#0b1c30]">--</span>
                         </div>
-                        <div class="flex justify-between items-center text-body-sm">
-                            <span class="text-on-surface-variant">Process ID</span>
-                            <span id="system-pid" class="font-bold text-on-surface">--</span>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-[#64748b]">ID Proses</span>
+                            <span id="system-pid" class="font-bold text-[#0b1c30]">--</span>
                         </div>
                     </div>
                 </div>
@@ -162,17 +162,17 @@
 
         // Bot running status
         if (data.is_running) {
-            statusBadge.className = 'px-md py-xs rounded-full text-[10px] font-bold uppercase tracking-wider bg-secondary/10 text-secondary';
-            statusBadge.textContent = 'RUNNING';
-            statusText.textContent = 'Active';
+            statusBadge.className = 'px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#dcfce7] text-[#166534]';
+            statusBadge.textContent = 'BERJALAN';
+            statusText.textContent = 'Aktif';
             document.getElementById('start-btn').disabled = true;
             document.getElementById('start-btn').classList.add('opacity-50');
             document.getElementById('stop-btn').disabled = false;
             document.getElementById('stop-btn').classList.remove('opacity-50');
         } else {
-            statusBadge.className = 'px-md py-xs rounded-full text-[10px] font-bold uppercase tracking-wider bg-surface-container-high text-on-surface-variant';
+            statusBadge.className = 'px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#f1f5f9] text-[#475569]';
             statusBadge.textContent = 'OFFLINE';
-            statusText.textContent = 'Stopped';
+            statusText.textContent = 'Berhenti';
             document.getElementById('start-btn').disabled = false;
             document.getElementById('start-btn').classList.remove('opacity-50');
             document.getElementById('stop-btn').disabled = true;
@@ -181,15 +181,15 @@
 
         // WhatsApp login status
         if (data.is_logged_in) {
-            waBadge.className = 'px-md py-xs rounded-full text-[10px] font-bold uppercase tracking-wider bg-secondary/10 text-secondary';
+            waBadge.className = 'px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#dcfce7] text-[#166534]';
             waBadge.textContent = 'ONLINE';
-            waText.textContent = 'Connected';
+            waText.textContent = 'Terhubung';
             qrSection.classList.add('hidden');
             currentQr = null;
         } else {
-            waBadge.className = 'px-md py-xs rounded-full text-[10px] font-bold uppercase tracking-wider bg-tertiary/10 text-tertiary';
-            waBadge.textContent = 'UNLINKED';
-            waText.textContent = 'Disconnected';
+            waBadge.className = 'px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#fef3c7] text-[#92400e]';
+            waBadge.textContent = 'TERPUTUS';
+            waText.textContent = 'Tidak Terhubung';
             
             if (data.is_running && data.qr_code) {
                 qrSection.classList.remove('hidden');
@@ -212,20 +212,20 @@
 
         // AI Quota status
         if (data.quota_exhausted) {
-            quotaBadge.className = 'px-sm py-xs rounded-full text-[10px] font-bold uppercase tracking-wider bg-error-container text-on-error-container';
-            quotaBadge.textContent = 'Exhausted';
-            quotaText.textContent = 'Unavailable';
+            quotaBadge.className = 'px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#fee2e2] text-[#991b1b]';
+            quotaBadge.textContent = 'Habis';
+            quotaText.textContent = 'Tidak Tersedia';
             quotaAlert.classList.remove('hidden');
         } else {
-            quotaBadge.className = 'px-sm py-xs rounded-full text-[10px] font-bold uppercase tracking-wider bg-secondary-container text-on-secondary-container';
-            quotaBadge.textContent = 'Available';
-            quotaText.textContent = 'Ready';
+            quotaBadge.className = 'px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#dcfce7] text-[#166534]';
+            quotaBadge.textContent = 'Tersedia';
+            quotaText.textContent = 'Siap';
             quotaAlert.classList.add('hidden');
         }
 
         // Last activity
-        lastActivityBadge.className = 'px-sm py-xs rounded-full text-[10px] font-bold uppercase tracking-wider bg-surface-container text-primary';
-        lastActivityBadge.textContent = 'Pulse';
+        lastActivityBadge.className = 'px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#e5eeff] text-[#3755c3]';
+        lastActivityBadge.textContent = 'Detak';
         if (data.last_activity) {
             lastActivityText.textContent = formatTime(data.last_activity);
         } else {
@@ -245,10 +245,10 @@
     }
 
     function sendCommand(command) {
-        if (!confirm(`Are you sure you want to ${command} the bot?`)) return;
+        if (!confirm(`Apakah Anda yakin ingin ${command} bot?`)) return;
 
         let url = `/bot/${command}`;
-        if (command === 'restart') url = '/bot/restart'; // Force restart process for better reliability
+        if (command === 'restart') url = '/bot/restart';
 
         fetch(url, { method: 'POST', headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' } })
             .then(response => response.json())
@@ -257,12 +257,11 @@
                 else alert(data.message);
                 pollStatus();
             })
-            .catch(() => alert('Failed to send command'));
+            .catch(() => alert('Gagal mengirim perintah'));
     }
 
-    // Poll every 5 seconds
     document.addEventListener('DOMContentLoaded', () => {
         pollStatus();
-        setInterval(pollStatus, 5000); // Faster polling for dashboard
+        setInterval(pollStatus, 5000);
     });
 </script>

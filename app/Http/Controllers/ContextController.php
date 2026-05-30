@@ -101,17 +101,11 @@ class ContextController extends Controller
         $dest = "context/{$id}";
         $fileName = $file->getClientOriginalName();
         
-        \Log::info("Attempting to move file. Destination Dir: '{$dest}', File Name: '{$fileName}'");
-        
-        // Ensure directory exists
         $storagePath = storage_path('app/' . $dest);
         if (!is_dir($storagePath)) {
             mkdir($storagePath, 0755, true);
         }
         
-        $targetPath = $storagePath . DIRECTORY_SEPARATOR . $fileName;
-        
-        // Attempt to move the file
         try {
             if ($file->move($storagePath, $fileName)) {
                 $filePath = $dest . '/' . $fileName;
@@ -123,19 +117,48 @@ class ContextController extends Controller
             return response()->json(['error' => 'Gagal menyimpan file.'], 500);
         }
         
-        \Log::info("File moved successfully. Path: '{$filePath}'");
-
         DB::table('bot_context')->where('id', $id)->update([
             'file_path' => $filePath,
             'updated_at' => now(),
         ]);
 
-        $this->dispatchProcess($id);
+        // Process synchronously
+        \Artisan::call('context:process', ['id' => $id]);
 
         return response()->json([
-            'message' => 'File uploaded. Processing started.',
+            'message' => 'File uploaded and processed.',
             'id' => $id,
         ], 201);
+    }
+
+    public function retry(int $id): JsonResponse
+    {
+        $row = DB::table('bot_context')->find($id);
+        if (!$row) {
+            return response()->json(['error' => 'Not found'], 404);
+        }
+
+        if ($row->status === 'processing') {
+            return response()->json(['error' => 'Already processing'], 409);
+        }
+
+        $filePath = storage_path("app/{$row->file_path}");
+        if (!file_exists($filePath)) {
+            return response()->json(['error' => 'File tidak ditemukan di storage. Upload ulang.'], 404);
+        }
+
+        DB::table('bot_context')->where('id', $id)->update([
+            'status' => 'pending',
+            'progress' => 0,
+            'error_message' => null,
+            'content' => null,
+            'updated_at' => now(),
+        ]);
+
+        // Process synchronously
+        \Artisan::call('context:process', ['id' => $id]);
+
+        return response()->json(['message' => 'Processed successfully.']);
     }
 
     public function update(Request $request, int $id): JsonResponse
@@ -146,17 +169,38 @@ class ContextController extends Controller
         }
 
         $data = [];
+        if ($request->has('title')) {
+            $data['title'] = $request->input('title');
+        }
         if ($request->has('category')) {
             $data['category'] = $request->input('category');
         }
         if ($request->has('tags')) {
             $data['tags'] = $request->input('tags');
         }
+        if ($request->has('content')) {
+            $data['content'] = $request->input('content');
+        }
         $data['updated_at'] = now();
 
         DB::table('bot_context')->where('id', $id)->update($data);
 
         return response()->json(['message' => 'Updated']);
+    }
+
+    public function download(int $id)
+    {
+        $row = DB::table('bot_context')->find($id);
+        if (!$row || !$row->file_path) {
+            abort(404);
+        }
+
+        $fullPath = storage_path("app/{$row->file_path}");
+        if (!file_exists($fullPath)) {
+            abort(404);
+        }
+
+        return response()->download($fullPath);
     }
 
     public function destroy(int $id): JsonResponse
@@ -203,44 +247,8 @@ class ContextController extends Controller
         ]);
     }
 
-    public function retry(int $id): JsonResponse
-    {
-        $row = DB::table('bot_context')->find($id);
-        if (!$row) {
-            return response()->json(['error' => 'Not found'], 404);
-        }
-
-        if ($row->status === 'processing') {
-            return response()->json(['error' => 'Already processing'], 409);
-        }
-
-        $filePath = storage_path("app/{$row->file_path}");
-        if (!file_exists($filePath)) {
-            return response()->json(['error' => 'File tidak ditemukan di storage. Upload ulang.'], 404);
-        }
-
-        DB::table('bot_context')->where('id', $id)->update([
-            'status' => 'pending',
-            'progress' => 0,
-            'error_message' => null,
-            'content' => null,
-            'updated_at' => now(),
-        ]);
-
-        $this->dispatchProcess($id);
-
-        return response()->json(['message' => 'Retrying...']);
-    }
-
     private function dispatchProcess(int $id): void
     {
-        $php = PHP_BINARY ?: 'php';
-        $artisan = base_path('artisan');
-
-        if (PHP_OS_FAMILY === 'Windows') {
-            pclose(popen("start /B {$php} {$artisan} context:process {$id} > NUL 2>&1", 'r'));
-        } else {
-            exec("{$php} {$artisan} context:process {$id} > /dev/null 2>&1 &");
-        }
+        // Removed as it is no longer used.
     }
 }
