@@ -17,6 +17,14 @@ export async function startBot() {
 
   const logger = pino({ level: 'silent' });
 
+  let loginMethod = 'qr';
+  let pairingPhone = null;
+  try {
+    const status = await db.getBotStatus();
+    loginMethod = status?.login_method || 'qr';
+    pairingPhone = status?.pairing_phone || null;
+  } catch (_) {}
+
   sock = makeWASocket({
     auth: {
       creds: state.creds,
@@ -37,6 +45,29 @@ export async function startBot() {
       console.log(`LID Mapping found: ${lid} -> ${pn}`);
     }
   });
+
+  // If using pairing code, request it after socket initializes
+  if (loginMethod === 'pairing_code' && pairingPhone && !state.creds.registered) {
+    (async () => {
+      await new Promise(r => setTimeout(r, 4000));
+      if (!isConnected) {
+        try {
+          const pairingCode = await sock.requestPairingCode(pairingPhone);
+          const formatted = pairingCode.match(/.{1,4}/g).join('-');
+          console.log('Pairing code:', formatted);
+          await db.updateBotStatus({
+            pairing_code: formatted,
+            qr_code: null,
+            is_logged_in: false,
+            is_running: true,
+            last_activity: new Date(),
+          });
+        } catch (err) {
+          console.error('Failed to get pairing code:', err);
+        }
+      }
+    })();
+  }
 
   sock.ev.on('connection.update', async (update) => {
     try {
@@ -64,6 +95,7 @@ export async function startBot() {
           is_logged_in: true,
           is_running: true,
           qr_code: null,
+          pairing_code: null,
           last_activity: new Date(),
         });
       }
@@ -76,11 +108,13 @@ export async function startBot() {
         const isLoggedOut = statusCode === DisconnectReason.loggedOut;
 
         if (isLoggedOut) {
-          console.log('Logged out, clearing auth for fresh QR...');
+          console.log('Logged out, clearing auth...');
           try {
             await db.updateBotStatus({
               is_logged_in: false,
               is_running: false,
+              qr_code: null,
+              pairing_code: null,
               last_activity: new Date(),
             });
           } catch (dbErr) {

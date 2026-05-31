@@ -19,6 +19,8 @@ class BotSettingsController extends Controller
             'medify_api_url' => $status->medify_api_url ?? '',
             'medify_api_email' => $status->medify_api_email ?? '',
             'medify_api_password' => $status->medify_api_password ? '••••••••' : '',
+            'login_method' => $status->login_method ?? 'qr',
+            'pairing_phone' => $status->pairing_phone ?? '',
         ]);
     }
 
@@ -31,6 +33,8 @@ class BotSettingsController extends Controller
             'medify_api_url' => 'nullable|string|max:255',
             'medify_api_email' => 'nullable|string|max:255',
             'medify_api_password' => 'nullable|string|max:255',
+            'login_method' => 'nullable|in:qr,pairing_code',
+            'pairing_phone' => 'nullable|string|max:20',
         ]);
 
         // Test Gemini API Key if provided
@@ -65,6 +69,12 @@ class BotSettingsController extends Controller
             if ($validated['medify_api_password'] !== '••••••••') {
                 $data['medify_api_password'] = $validated['medify_api_password'];
             }
+        }
+        if ($request->has('login_method')) {
+            $data['login_method'] = $validated['login_method'];
+        }
+        if ($request->has('pairing_phone')) {
+            $data['pairing_phone'] = $validated['pairing_phone'];
         }
 
         if (!empty($data)) {

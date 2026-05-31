@@ -1,5 +1,6 @@
 *.log
 .DS_Store
+/whatsapp-bot/auth/
 .env
 .env.backup
 .env.production

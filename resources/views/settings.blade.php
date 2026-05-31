@@ -22,13 +22,25 @@
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-xl">
                         <div class="flex flex-col items-center gap-md">
-                            <div id="qr-container" class="p-md bg-white rounded-xl border border-outline-variant shadow-inner">
-                                <div id="qr-placeholder" class="w-48 h-48 bg-surface-container-low flex items-center justify-center rounded-xl">
-                                    <span class="material-symbols-outlined text-outline text-[64px]">hourglass_empty</span>
+                            <div id="qr-display-area" class="flex flex-col items-center gap-md">
+                                <div id="qr-container" class="p-md bg-white rounded-xl border border-outline-variant shadow-inner">
+                                    <div id="qr-placeholder" class="w-48 h-48 bg-surface-container-low flex items-center justify-center rounded-xl">
+                                        <span class="material-symbols-outlined text-outline text-[64px]">hourglass_empty</span>
+                                    </div>
+                                    <img id="qr-image" src="" alt="WhatsApp QR Code" class="w-48 h-48 hidden" />
                                 </div>
-                                <img id="qr-image" src="" alt="WhatsApp QR Code" class="w-48 h-48 hidden" />
+                                <p class="font-body-sm font-semibold text-primary">Scan to connect</p>
                             </div>
-                            <p class="font-body-sm font-semibold text-primary">Scan to connect</p>
+                            <div id="pairing-container" class="hidden flex flex-col items-center gap-md">
+                                <div class="p-md bg-white rounded-xl border border-outline-variant shadow-inner">
+                                    <div class="w-48 h-48 flex flex-col items-center justify-center gap-2">
+                                        <span class="material-symbols-outlined text-[#3755c3] text-[48px]">pin</span>
+                                        <p class="text-xs text-on-surface-variant">Kode Pairing</p>
+                                        <p id="pairing-code-display-settings" class="text-2xl font-bold text-[#3755c3] tracking-[0.3em]">------</p>
+                                    </div>
+                                </div>
+                                <p class="font-body-sm font-semibold text-primary">Enter code in WhatsApp</p>
+                            </div>
                         </div>
                         <div class="space-y-md">
                             <h3 class="font-body-md font-bold text-on-surface">Instructions</h3>
@@ -43,7 +55,8 @@
                                 </li>
                                 <li class="flex gap-sm">
                                     <span class="w-6 h-6 rounded-full bg-primary-container text-on-primary text-[12px] flex items-center justify-center flex-shrink-0">3</span>
-                                    <p class="font-body-sm text-on-surface-variant">Point your phone to this screen to capture the code.</p>
+                                    <p id="qr-instruction-text" class="font-body-sm text-on-surface-variant">Point your phone to this screen to capture the code.</p>
+                                    <p id="pairing-instruction-text" class="font-body-sm text-on-surface-variant hidden">Tap "Link Device" and enter the pairing code shown.</p>
                                 </li>
                             </ul>
                         </div>
@@ -92,6 +105,31 @@
                                 <button onclick="toggleGeminiVisibility()" class="w-10 h-10 flex items-center justify-center rounded-xl border border-outline-variant/50 hover:bg-surface-container-low transition-all shrink-0">
                                     <span class="material-symbols-outlined text-[20px] text-on-surface-variant">visibility_off</span>
                                 </button>
+                            </div>
+                        </div>
+
+                        <div class="space-y-sm p-lg rounded-xl bg-surface-container-low/30 border border-outline-variant/20">
+                            <label class="font-bold text-sm text-on-surface flex items-center gap-sm" for="login-method">
+                                <span class="material-symbols-outlined text-[18px] text-primary">login</span>
+                                Metode Login WhatsApp
+                            </label>
+                            <p class="text-xs text-on-surface-variant">Pilih QR Code atau Pairing Code (alternatif).</p>
+                            <div class="flex gap-sm mt-sm">
+                                <label class="flex items-center gap-xs cursor-pointer p-sm rounded-xl border border-outline-variant/30 hover:bg-surface-container-low transition-all flex-1">
+                                    <input type="radio" name="login-method" value="qr" checked onchange="toggleLoginMethod()" class="text-primary" />
+                                    <span class="material-symbols-outlined text-[18px] text-outline">qr_code</span>
+                                    <span class="font-semibold text-sm">QR Code</span>
+                                </label>
+                                <label class="flex items-center gap-xs cursor-pointer p-sm rounded-xl border border-outline-variant/30 hover:bg-surface-container-low transition-all flex-1">
+                                    <input type="radio" name="login-method" value="pairing_code" onchange="toggleLoginMethod()" class="text-primary" />
+                                    <span class="material-symbols-outlined text-[18px] text-outline">pin</span>
+                                    <span class="font-semibold text-sm">Pairing Code</span>
+                                </label>
+                            </div>
+                            <div id="pairing-phone-group" class="hidden mt-sm">
+                                <label class="font-semibold text-xs text-on-surface" for="pairing-phone">Nomor WhatsApp (dengan kode negara)</label>
+                                <input id="pairing-phone" type="text" placeholder="6281234567890"
+                                    class="w-full px-md py-sm bg-white border border-outline-variant/50 rounded-xl text-sm text-on-surface mt-xs" />
                             </div>
                         </div>
                     </div>
@@ -347,6 +385,11 @@
         return div.innerHTML;
     }
 
+    function toggleLoginMethod() {
+        const method = document.querySelector('input[name="login-method"]:checked').value;
+        document.getElementById('pairing-phone-group').classList.toggle('hidden', method !== 'pairing_code');
+    }
+
     function toggleLogExpand() {
         const el = document.getElementById('status-log');
         const btn = document.getElementById('log-expand-btn');
@@ -360,6 +403,8 @@
         const isRunning = data.is_running;
         const isLoggedIn = data.is_logged_in;
         const qrCode = data.qr_code;
+        const pairingCode = data.pairing_code;
+        const loginMethod = data.login_method || 'qr';
         const port = data.port;
 
         // Engine badge (config section)
@@ -403,22 +448,42 @@
         document.getElementById('btn-restart').classList.toggle('hidden', !isRunning);
         document.getElementById('bot-port').disabled = isRunning;
 
-        // QR Code
+        // QR / Pairing Code
         const qrSection = document.getElementById('qr-section');
         const qrImage = document.getElementById('qr-image');
         const qrPlaceholder = document.getElementById('qr-placeholder');
         const qrStatus = document.getElementById('qr-status');
+        const pairingContainer = document.getElementById('pairing-container');
+        const pairingDisplay = document.getElementById('pairing-code-display-settings');
+        const qrDisplayArea = document.getElementById('qr-display-area');
+        const qrInstText = document.getElementById('qr-instruction-text');
+        const pairingInstText = document.getElementById('pairing-instruction-text');
 
         if (isRunning && !isLoggedIn) {
             qrSection.classList.remove('hidden');
-            if (qrCode) {
+            if (loginMethod === 'pairing_code' && pairingCode) {
+                qrDisplayArea.classList.add('hidden');
+                pairingContainer.classList.remove('hidden');
+                pairingDisplay.textContent = pairingCode;
+                qrStatus.className = 'bg-tertiary-container text-on-tertiary-container px-sm py-xs rounded-full text-label-caps uppercase tracking-wider';
+                qrStatus.textContent = 'Enter Code';
+                qrInstText.classList.add('hidden');
+                pairingInstText.classList.remove('hidden');
+                log(`Pairing code: ${pairingCode}`, 'success');
+            } else if (qrCode) {
+                qrDisplayArea.classList.remove('hidden');
+                pairingContainer.classList.add('hidden');
                 qrImage.src = qrCode;
                 qrImage.classList.remove('hidden');
                 qrPlaceholder.classList.add('hidden');
                 qrStatus.className = 'bg-secondary-container text-on-secondary-container px-sm py-xs rounded-full text-label-caps uppercase tracking-wider';
                 qrStatus.textContent = 'Scan Now';
+                qrInstText.classList.remove('hidden');
+                pairingInstText.classList.add('hidden');
                 log('QR Code ready — scan with WhatsApp', 'success');
             } else {
+                qrDisplayArea.classList.remove('hidden');
+                pairingContainer.classList.add('hidden');
                 qrImage.classList.add('hidden');
                 qrPlaceholder.classList.remove('hidden');
                 qrStatus.className = 'bg-surface-container-high text-on-surface-variant px-sm py-xs rounded-full text-label-caps uppercase tracking-wider';
@@ -503,6 +568,13 @@
                 // Handle masked secrets
                 if (data.gemini_api_key) document.getElementById('gemini-key').placeholder = '•••••••• (tersimpan)';
                 if (data.medify_api_password) document.getElementById('medify-api-password').placeholder = '•••••••• (tersimpan)';
+
+                // Login method
+                if (data.login_method) {
+                    document.querySelector(`input[name="login-method"][value="${data.login_method}"]`).checked = true;
+                    toggleLoginMethod();
+                }
+                if (data.pairing_phone) document.getElementById('pairing-phone').value = data.pairing_phone;
             })
             .catch(() => {});
     }
@@ -550,6 +622,8 @@
         const medifyUrl = document.getElementById('medify-api-url').value.trim();
         const medifyEmail = document.getElementById('medify-api-email').value.trim();
         const medifyPassword = document.getElementById('medify-api-password').value.trim();
+        const loginMethod = document.querySelector('input[name="login-method"]:checked')?.value;
+        const pairingPhone = document.getElementById('pairing-phone').value.trim();
         const btn = document.getElementById('btn-save-settings');
 
         btn.disabled = true;
@@ -562,6 +636,8 @@
         if (medifyUrl) body.medify_api_url = medifyUrl;
         if (medifyEmail) body.medify_api_email = medifyEmail;
         if (medifyPassword) body.medify_api_password = medifyPassword;
+        if (loginMethod) body.login_method = loginMethod;
+        if (pairingPhone) body.pairing_phone = pairingPhone;
 
         fetch('/bot/settings', {
             method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },

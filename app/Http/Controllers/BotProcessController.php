@@ -38,6 +38,7 @@ class BotProcessController extends Controller
                 'port' => $port,
                 'pid' => null,
                 'qr_code' => null,
+                'pairing_code' => null,
                 'last_activity' => now(),
                 'updated_at' => now(),
             ]);
@@ -67,6 +68,7 @@ class BotProcessController extends Controller
             'port' => $port,
             'pid' => null,
             'qr_code' => null,
+            'pairing_code' => null,
             'last_activity' => now(),
             'updated_at' => now(),
         ]);
@@ -192,6 +194,7 @@ class BotProcessController extends Controller
                         'is_logged_in' => false,
                         'pid' => null,
                         'qr_code' => null,
+                        'pairing_code' => null,
                         'updated_at' => now(),
                     ]);
                     return response()->json(['message' => 'Bot stopped (container was already stopped)']);
@@ -206,6 +209,7 @@ class BotProcessController extends Controller
                 'is_logged_in' => false,
                 'pid' => null,
                 'qr_code' => null,
+                'pairing_code' => null,
                 'updated_at' => now(),
             ]);
 
@@ -221,6 +225,7 @@ class BotProcessController extends Controller
                 'is_logged_in' => false,
                 'pid' => null,
                 'qr_code' => null,
+                'pairing_code' => null,
                 'updated_at' => now(),
             ]);
             return response()->json(['message' => 'Bot stopped']);
@@ -241,6 +246,7 @@ class BotProcessController extends Controller
             'is_logged_in' => false,
             'pid' => null,
             'qr_code' => null,
+            'pairing_code' => null,
             'updated_at' => now(),
         ]);
 
@@ -263,6 +269,7 @@ class BotProcessController extends Controller
                 'is_logged_in' => false,
                 'pid' => null,
                 'qr_code' => null,
+                'pairing_code' => null,
                 'updated_at' => now(),
             ]);
 

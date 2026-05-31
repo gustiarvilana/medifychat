@@ -192,6 +192,15 @@ async function main() {
     }
   });
 
+  app.get('/pairing-code', async (req, res) => {
+    try {
+      const status = await getBotStatus();
+      res.json({ pairing_code: status?.pairing_code || null });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   app.listen(PORT, () => {
     console.log(`Health check server running on port ${PORT}`);
   });
@@ -210,6 +219,7 @@ async function shutdown() {
     is_running: false,
     is_logged_in: false,
     qr_code: null,
+    pairing_code: null,
   });
   process.exit(0);
 }
@@ -219,7 +229,7 @@ process.on('SIGTERM', shutdown);
 
 main().catch((error) => {
   console.error('Fatal error:', error);
-  updateBotStatus({ is_running: false, is_logged_in: false, qr_code: null })
+  updateBotStatus({ is_running: false, is_logged_in: false, qr_code: null, pairing_code: null })
     .then(() => process.exit(1))
     .catch(() => process.exit(1));
 });

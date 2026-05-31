@@ -40,6 +40,9 @@ class BotStatusController extends Controller
             'last_error_at' => $status->last_error_at ?? null,
             'recent_commands' => $recentCommands,
             'recent_activity' => $recentActivity,
+            'login_method' => $status->login_method ?? 'qr',
+            'pairing_code' => $status->pairing_code ?? null,
+            'pairing_phone' => $status->pairing_phone ?? null,
         ]);
     }
 

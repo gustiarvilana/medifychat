@@ -45,7 +45,7 @@
                 @endforeach
             </div>
 
-            <!-- QR Code Section (Hidden by default) -->
+            <!-- QR / Pairing Code Section (Hidden by default) -->
             <div id="qr-section" class="hidden bg-white rounded-xl border border-[#e2e8f0] p-6 shadow-sm">
                 <div class="flex flex-col md:flex-row items-center gap-6">
                     <div id="qr-container" class="w-64 h-64 bg-white border border-[#e2e8f0] rounded-xl flex items-center justify-center p-4">
@@ -54,9 +54,18 @@
                             <p class="text-sm text-[#64748b]">Menunggu QR...</p>
                         </div>
                     </div>
+                    <div id="pairing-container" class="w-64 h-64 bg-white border border-[#e2e8f0] rounded-xl flex items-center justify-center p-4 hidden">
+                        <div class="flex flex-col items-center gap-3">
+                            <span class="material-symbols-outlined text-4xl text-[#3755c3]">pin</span>
+                            <p class="text-sm text-[#64748b]">Kode Pairing</p>
+                            <p id="pairing-code-display" class="text-3xl font-bold text-[#3755c3] tracking-[0.3em]">------</p>
+                            <p class="text-xs text-[#64748b] text-center">Buka WhatsApp > Perangkat Tertaut > Tautkan Perangkat > <br/><strong>Gunakan kode</strong></p>
+                        </div>
+                    </div>
                     <div class="flex-1 text-center md:text-left">
                         <h3 class="text-xl font-bold text-[#3755c3] mb-2">Tautkan WhatsApp</h3>
-                        <p class="text-md text-[#444653] mb-6">Pindai kode QR ini dengan WhatsApp Anda untuk menghubungkan bot. Pastikan ponsel Anda tetap daring.</p>
+                        <p id="qr-instructions" class="text-md text-[#444653] mb-6">Pindai kode QR ini dengan WhatsApp Anda untuk menghubungkan bot. Pastikan ponsel Anda tetap daring.</p>
+                        <p id="pairing-instructions" class="text-md text-[#444653] mb-6 hidden">Masukkan kode pairing di WhatsApp Anda. Pastikan ponsel Anda tetap daring.</p>
                         <div class="flex flex-col gap-2">
                             <div class="flex items-center gap-2 text-[#0b1c30]">
                                 <span class="material-symbols-outlined text-[#3755c3]">check_circle</span>
@@ -66,9 +75,13 @@
                                 <span class="material-symbols-outlined text-[#3755c3]">check_circle</span>
                                 <span class="text-sm font-semibold">Ketuk Menu atau Pengaturan dan pilih Perangkat Tertaut</span>
                             </div>
-                            <div class="flex items-center gap-2 text-[#0b1c30]">
+                            <div id="qr-step-3" class="flex items-center gap-2 text-[#0b1c30]">
                                 <span class="material-symbols-outlined text-[#3755c3]">check_circle</span>
                                 <span class="text-sm font-semibold">Arahkan ponsel Anda ke layar ini untuk memindai kode</span>
+                            </div>
+                            <div id="pairing-step-3" class="hidden flex items-center gap-2 text-[#0b1c30]">
+                                <span class="material-symbols-outlined text-[#3755c3]">check_circle</span>
+                                <span class="text-sm font-semibold">Pilih "Tautkan Perangkat" lalu masukkan kode di atas</span>
                             </div>
                         </div>
                     </div>
@@ -159,6 +172,12 @@
         const quotaAlert = document.getElementById('quota-alert');
         const qrSection = document.getElementById('qr-section');
         const qrContainer = document.getElementById('qr-container');
+        const pairingContainer = document.getElementById('pairing-container');
+        const pairingDisplay = document.getElementById('pairing-code-display');
+        const qrInstructions = document.getElementById('qr-instructions');
+        const pairingInstructions = document.getElementById('pairing-instructions');
+        const qrStep3 = document.getElementById('qr-step-3');
+        const pairingStep3 = document.getElementById('pairing-step-3');
 
         // Bot running status
         if (data.is_running) {
@@ -191,19 +210,35 @@
             waBadge.textContent = 'TERPUTUS';
             waText.textContent = 'Tidak Terhubung';
             
-            if (data.is_running && data.qr_code) {
+            if (data.is_running && (data.qr_code || data.pairing_code)) {
                 qrSection.classList.remove('hidden');
-                if (currentQr !== data.qr_code) {
-                    currentQr = data.qr_code;
-                    qrContainer.innerHTML = '<canvas id="qrcode-canvas" class="w-full h-full"></canvas>';
-                    QRCode.toCanvas(document.getElementById('qrcode-canvas'), data.qr_code, {
-                        width: 256,
-                        margin: 2,
-                        color: {
-                            dark: '#00288e',
-                            light: '#ffffff'
-                        }
-                    });
+                if (data.login_method === 'pairing_code' && data.pairing_code) {
+                    qrContainer.classList.add('hidden');
+                    pairingContainer.classList.remove('hidden');
+                    qrInstructions.classList.add('hidden');
+                    pairingInstructions.classList.remove('hidden');
+                    qrStep3.classList.add('hidden');
+                    pairingStep3.classList.remove('hidden');
+                    pairingDisplay.textContent = data.pairing_code;
+                } else if (data.qr_code) {
+                    qrContainer.classList.remove('hidden');
+                    pairingContainer.classList.add('hidden');
+                    qrInstructions.classList.remove('hidden');
+                    pairingInstructions.classList.add('hidden');
+                    qrStep3.classList.remove('hidden');
+                    pairingStep3.classList.add('hidden');
+                    if (currentQr !== data.qr_code) {
+                        currentQr = data.qr_code;
+                        qrContainer.innerHTML = '<canvas id="qrcode-canvas" class="w-full h-full"></canvas>';
+                        QRCode.toCanvas(document.getElementById('qrcode-canvas'), data.qr_code, {
+                            width: 256,
+                            margin: 2,
+                            color: {
+                                dark: '#00288e',
+                                light: '#ffffff'
+                            }
+                        });
+                    }
                 }
             } else {
                 qrSection.classList.add('hidden');
