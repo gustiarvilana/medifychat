@@ -101,15 +101,26 @@ export async function startBot() {
   });
 
   sock.ev.on('messages.upsert', async (msg) => {
+    console.log('DEBUG: Received messages.upsert event:', JSON.stringify(msg, null, 2));
     for (const message of msg.messages) {
-      if (!message.key || message.key.fromMe) continue;
+      if (!message.key || message.key.fromMe) {
+        console.log('DEBUG: Skipping message (no key or fromMe)');
+        continue;
+      }
 
       const text =
         message.message?.conversation ||
         message.message?.extendedTextMessage?.text;
-      if (!text) continue;
+      
+      console.log('DEBUG: Message text:', text);
+      if (!text) {
+        console.log('DEBUG: Skipping message (no text)');
+        continue;
+      }
 
       let sender = message.key.remoteJid;
+      console.log('DEBUG: Sender:', sender);
+      
       const realSender = message.key.remoteJidAlt || message.key.participantAlt;
       
       if (realSender && sender.endsWith('@lid')) {
@@ -132,12 +143,14 @@ export async function startBot() {
 
       try {
         const session = await db.getSession(sender);
+        console.log('DEBUG: Session found:', session);
         const state = session?.current_state || 'IDLE';
         const raw = session?.form_data || {};
         const formData = typeof raw === 'string' ? JSON.parse(raw) : raw;
 
         const handled = await handleMessageForState(sender, text, state, formData, name);
         if (!handled) {
+          console.log('DEBUG: Passing to handleMessage');
           await handleMessage(sender, text, name);
         }
 

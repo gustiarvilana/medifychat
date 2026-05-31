@@ -3,6 +3,7 @@ import { detectIntent, getFallbackResponse } from '../nlp-engine.js';
 import * as gemini from '../gemini-api.js';
 import { sendWithDelay } from './utils.js';
 import { HELP_TEXT, MENU_NUMBERS } from './constants.js';
+import { BOT } from '../bot-profile.js';
 import { handleCheckDoctorSchedule } from './doctor-schedule.js';
 import { handleCheckBed } from './bed.js';
 import { handleStatus } from './status.js';
@@ -68,7 +69,7 @@ export async function handleIdleState(sender, message) {
   if (GREATINGS.test(message) && !intent) {
     const greeting = userName
       ? `Halo Kak *${userName}*! 👋 Senang bertemu lagi. Ada yang bisa saya bantu hari ini?`
-      : `Halo! 👋 Saya asisten dari RS Bhayangkara Setukpa Sukabumi. Ada yang bisa saya bantu?\n\n` +
+      : `Halo! 👋 Saya asisten dari ${BOT.rsName}. Ada yang bisa saya bantu?\n\n` +
         `Bisa langsung tulis saja ya, misalnya:\n` +
         `• "Saya mau daftar berobat"\n` +
         `• "Cek jadwal dokter penyakit dalam"\n` +
@@ -129,12 +130,8 @@ export async function handleIdleState(sender, message) {
       break;
 
     default:
-      const contextContents = await searchContext(message);
-      const contextStr = contextContents ? contextContents.join('\n\n') : '';
       const memoryStr = userName ? `Nama user: ${userName}. ` : '';
-      const geminiPrompt = memoryStr || contextStr
-        ? `[Informasi RS]\n${contextStr}\n\n[Data User]\n${memoryStr}\n\n[Pesan User]\n${message}`
-        : message;
+      const geminiPrompt = memoryStr ? `${memoryStr}${message}` : message;
       const geminiReply = await gemini.chat(geminiPrompt);
       if (geminiReply) {
         await sendWithDelay(sender, geminiReply);
@@ -143,8 +140,6 @@ export async function handleIdleState(sender, message) {
           `Halo Kak *${userName}*! 😊 Ada yang bisa saya bantu hari ini?\n` +
           `Coba tulis saja kebutuhannya, misalnya daftar berobat atau cek jadwal dokter.`
         );
-      } else if (contextContents) {
-        await sendWithDelay(sender, buildContextResponse(contextContents));
       } else {
         await sendWithDelay(sender, getFallbackResponse());
       }

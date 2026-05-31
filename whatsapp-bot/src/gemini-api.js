@@ -1,11 +1,16 @@
 import config from './config.js';
 import * as db from './database.js';
+import { buildSystemInstruction } from './bot-profile.js';
 
 const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
 let cachedKey = null;
 let cachedKeyTime = 0;
 const CACHE_TTL = 60000;
+
+let cachedContext = '';
+let cachedContextTime = 0;
+const CONTEXT_CACHE_TTL = 300000; // 5 minutes
 
 async function getApiKey() {
   if (Date.now() - cachedKeyTime < CACHE_TTL && cachedKey) return cachedKey;
@@ -22,27 +27,37 @@ async function getApiKey() {
   return config.gemini.apiKey;
 }
 
-const SYSTEM_INSTRUCTION = `Kamu adalah MedifyBot, asisten rumah sakit yang membantu pasien mendaftar rawat jalan.
+export async function loadContext() {
+  if (Date.now() - cachedContextTime < CONTEXT_CACHE_TTL && cachedContext) return cachedContext;
+  
+  try {
+    const contextData = await db.getActiveContext();
+    cachedContext = contextData ? contextData.content : '';
+    cachedContextTime = Date.now();
+    return cachedContext;
+  } catch (error) {
+    console.error('Failed to load context:', error);
+    return '';
+  }
+}
 
-Fitur yang tersedia:
-1. Daftar rawat jalan (kata kunci: daftar, registrasi, booking)
-2. Cek jadwal dokter (kata kunci: jadwal dokter, praktek dokter)
-3. Cek ketersediaan tempat tidur (kata kunci: tempat tidur, bed kosong)
-4. Cek status booking (kata kunci: status booking, kode booking)
-5. Bantuan (kata kunci: bantuan, menu)
+export function refreshContextCache() {
+  cachedContext = '';
+  cachedContextTime = 0;
+}
 
-Jika user ingin mendaftar, arahkan mereka untuk mengetik kata "daftar" atau "saya mau daftar".
-Jika user bertanya di luar konteks rumah sakit, jawab dengan ramah dan arahkan kembali ke fitur yang tersedia.
-Gunakan bahasa Indonesia yang natural dan ramah seperti seorang customer service rumah sakit.
-Jangan pernah memberikan saran medis atau diagnosis.
-Jangan membuat janji palsu tentang ketersediaan dokter atau obat.
-Jawab singkat dan jelas, maksimal 3 paragraf.`;
+async function getSystemInstruction() {
+  const context = await loadContext();
+  return buildSystemInstruction(context);
+}
 
 export async function chat(message) {
   const apiKey = await getApiKey();
   if (!apiKey || apiKey === 'your_gemini_api_key_here') {
     return null;
   }
+
+  const systemInstruction = await getSystemInstruction();
 
   try {
     const controller = new AbortController();
@@ -54,7 +69,7 @@ export async function chat(message) {
       signal: controller.signal,
       body: JSON.stringify({
         system_instruction: {
-          parts: [{ text: SYSTEM_INSTRUCTION }],
+          parts: [{ text: systemInstruction }],
         },
         contents: [{
           parts: [{ text: message }],

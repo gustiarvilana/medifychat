@@ -27,6 +27,25 @@ export function startPolling(socket) {
               await db.markCommandProcessed(cmd.id, true);
               break;
 
+            case 'send_message':
+              try {
+                const payload = JSON.parse(cmd.payload);
+                console.log(`Sending message to ${payload.target}...`);
+                await socket.sendMessage(payload.target, { text: payload.message });
+                console.log('Message sent successfully.');
+                await db.markCommandProcessed(cmd.id, true);
+              } catch (err) {
+                console.error('Failed to send admin message:', err.message);
+                console.error('Stack trace:', err.stack);
+                
+                // Log to file
+                const fs = await import('fs');
+                fs.appendFileSync('bot-error.log', `[${new Date().toISOString()}] Command ${cmd.id} failed: ${err.message}\n${err.stack}\n`);
+                
+                await db.markCommandProcessed(cmd.id, false);
+              }
+              break;
+
             default:
               await db.markCommandProcessed(cmd.id, false);
           }

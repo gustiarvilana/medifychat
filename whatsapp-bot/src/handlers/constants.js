@@ -1,16 +1,6 @@
-const HELP_TEXT =
-  'Halo! 👋 Saya asisten dari *RS Bhayangkara Setukpa Sukabumi*, senang bisa membantu Anda.\n\n' +
-  'Yang bisa saya bantu:\n' +
-  '• *Daftar berobat* — booking rawat jalan\n' +
-  '• *Jadwal dokter* — cek jadwal praktek\n' +
-  '• *Info tempat tidur* — ketersediaan bed\n' +
-  '• *Status booking* — cek pendaftaran Anda\n' +
-  '• *Paket MCU* — info medical check-up\n' +
-  '• *Antrian poli* — cek nomor antrian\n' +
-  '• *Jadwal per tanggal* — dokter praktek hari tertentu\n' +
-  '• *Batalkan booking* — pembatalan pendaftaran\n\n' +
-  'Cukup tulis apa yang Anda butuhkan dengan kata-kata sendiri, ya 😊\n' +
-  'Contoh: \"Saya mau daftar ke poli\" atau \"Cek jadwal dokter\"';
+import { buildMenuText } from '../bot-profile.js';
+
+const HELP_TEXT = buildMenuText();
 
 const MENU_NUMBERS = {
   '0': 'HELP',

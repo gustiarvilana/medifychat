@@ -25,6 +25,7 @@ class BotStatusController extends Controller
         return response()->json([
             'is_running' => $status->is_running ?? false,
             'is_logged_in' => $status->is_logged_in ?? false,
+            'is_ai_ready' => !empty($status->gemini_api_key),
             'last_activity' => $status->last_activity,
             'port' => $status->port ?? null,
             'qr_code' => $status->qr_code ?? null,

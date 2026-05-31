@@ -7,6 +7,8 @@ import { startBot, sendMessage, isLoggedIn } from './baileys-client.js';
 import { setSendMessage } from './message-handler.js';
 import { startPolling, stopPolling } from './bot-commands.js';
 import { getPool, updateBotStatus, cleanupExpiredSessions, getBotStatus } from './database.js';
+import { setRsName } from './bot-profile.js';
+import { refreshContextCache } from './gemini-api.js';
 
 const PORT = parseInt(process.argv[2] || process.env.PORT || '3001');
 
@@ -87,6 +89,9 @@ async function main() {
       if (status?.medify_api_url) config.medify.apiUrl = status.medify_api_url;
       if (status?.medify_api_email) config.medify.email = status.medify_api_email;
       if (status?.medify_api_password) config.medify.password = status.medify_api_password;
+      
+      // Update RS Name from DB
+      if (status?.rs_name) setRsName(status.rs_name);
 
       await updateBotStatus({
         is_running: true,
@@ -94,6 +99,9 @@ async function main() {
         last_activity: new Date(),
         port: status?.port || PORT,
       });
+
+      // Refresh context cache periodically
+      refreshContextCache();
 
       const quotaExhausted = status?.quota_exhausted ? true : false;
       const quotaNotified = status?.quota_notified ? true : false;

@@ -7,8 +7,8 @@
     <div id="quota-alert" class="hidden mb-lg p-lg bg-error-container border border-error rounded-xl flex items-center gap-md shadow-sm">
         <span class="material-symbols-outlined text-error text-2xl">warning</span>
         <div class="flex-1">
-            <p class="font-bold text-error">AI Quota Exhausted</p>
-            <p class="text-body-sm text-on-surface-variant">The AI engine cannot respond to natural messages. Please update your API key in settings or upgrade your plan.</p>
+            <p class="font-bold text-error">AI Engine Status Issue</p>
+            <p class="text-body-sm text-on-surface-variant">The AI engine is not configured or not responding. Please check your API key settings.</p>
         </div>
     </div>
 
@@ -210,17 +210,17 @@
             }
         }
 
-        // AI Quota status
-        if (data.quota_exhausted) {
-            quotaBadge.className = 'px-sm py-xs rounded-full text-[10px] font-bold uppercase tracking-wider bg-error-container text-on-error-container';
-            quotaBadge.textContent = 'Exhausted';
-            quotaText.textContent = 'Unavailable';
-            quotaAlert.classList.remove('hidden');
-        } else {
+        // AI Engine status
+        if (data.is_ai_ready) {
             quotaBadge.className = 'px-sm py-xs rounded-full text-[10px] font-bold uppercase tracking-wider bg-secondary-container text-on-secondary-container';
-            quotaBadge.textContent = 'Available';
-            quotaText.textContent = 'Ready';
+            quotaBadge.textContent = 'Ready';
+            quotaText.textContent = 'AI Active';
             quotaAlert.classList.add('hidden');
+        } else {
+            quotaBadge.className = 'px-sm py-xs rounded-full text-[10px] font-bold uppercase tracking-wider bg-error-container text-on-error-container';
+            quotaBadge.textContent = 'Not Configured';
+            quotaText.textContent = 'Check Settings';
+            quotaAlert.classList.remove('hidden');
         }
 
         // Last activity

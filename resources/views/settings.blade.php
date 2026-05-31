@@ -49,14 +49,27 @@
                 <!-- Bot Configuration Section -->
                 <section class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm">
                     <div class="flex items-center justify-between border-b border-surface-container-low pb-md mb-lg">
-                        <div class="flex items-center gap-sm">
-                            <span class="material-symbols-outlined text-primary">tune</span>
-                            <h2 class="font-title-md text-title-md">Bot Configuration</h2>
-                        </div>
+                    <div class="flex items-center gap-sm">
+                        <span class="material-symbols-outlined text-primary">tune</span>
+                        <h2 class="font-title-md text-title-md">Bot Configuration</h2>
+                    </div>
+                    <div class="flex gap-sm">
+                        <span id="ai-engine-badge" class="bg-surface-container-high text-on-surface-variant px-sm py-xs rounded-full text-label-caps uppercase tracking-wider">Checking...</span>
                         <span id="engine-badge" class="bg-surface-container-high text-on-surface-variant px-sm py-xs rounded-full text-label-caps uppercase tracking-wider">Checking...</span>
+                    </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
+                        <div class="md:col-span-2 space-y-sm p-lg rounded-xl bg-surface-container-low/30 border border-outline-variant/20">
+                            <label class="font-bold text-sm text-on-surface flex items-center gap-sm" for="rs-name">
+                                <span class="material-symbols-outlined text-[18px] text-primary">hospital</span>
+                                Nama Rumah Sakit
+                            </label>
+                            <p class="text-xs text-on-surface-variant">Nama yang akan digunakan oleh bot dalam menyapa pasien.</p>
+                            <input id="rs-name" type="text" placeholder="RS Bhayangkara Setukpa Sukabumi"
+                                class="w-full px-md py-sm bg-white border border-outline-variant/50 rounded-xl text-sm text-on-surface placeholder:text-outline-variant/60 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all mt-sm" />
+                        </div>
+
                         <div class="space-y-sm p-lg rounded-xl bg-surface-container-low/30 border border-outline-variant/20">
                             <label class="font-bold text-sm text-on-surface flex items-center gap-sm" for="admin-wa">
                                 <span class="material-symbols-outlined text-[18px] text-primary">admin_panel_settings</span>
@@ -118,7 +131,8 @@
                         </div>
                     </div>
 
-                    <div class="mt-xl flex justify-end gap-md">
+                    <div class="mt-xl flex justify-end items-center gap-md">
+                        <p id="save-status" class="text-xs font-semibold hidden"></p>
                         <button id="btn-save-settings" onclick="saveSettings()"
                             class="bg-primary text-white px-xl py-md rounded-xl font-bold text-sm hover:bg-primary-container transition-all flex items-center gap-sm shadow-md">
                             <span class="material-symbols-outlined text-[20px]">save</span>
@@ -302,6 +316,7 @@
     }
 
     function updateUI(data) {
+        console.log('Poll status data:', data); // Debug log
         const isRunning = data.is_running;
         const isLoggedIn = data.is_logged_in;
         const qrCode = data.qr_code;
@@ -309,12 +324,24 @@
 
         // Engine badge (config section)
         const badge = document.getElementById('engine-badge');
+        const aiBadge = document.getElementById('ai-engine-badge');
+        
         if (isRunning) {
             badge.className = 'bg-secondary-container text-on-secondary-container px-sm py-xs rounded-full text-label-caps uppercase tracking-wider';
             badge.textContent = isLoggedIn ? 'Connected' : 'Running';
         } else {
             badge.className = 'bg-surface-container-high text-on-surface-variant px-sm py-xs rounded-full text-label-caps uppercase tracking-wider';
             badge.textContent = 'Offline';
+        }
+
+        if (data.is_ai_ready !== undefined) {
+            if (data.is_ai_ready) {
+                aiBadge.className = 'bg-secondary-container text-on-secondary-container px-sm py-xs rounded-full text-label-caps uppercase tracking-wider';
+                aiBadge.textContent = 'AI Ready';
+            } else {
+                aiBadge.className = 'bg-error-container text-on-error-container px-sm py-xs rounded-full text-label-caps uppercase tracking-wider';
+                aiBadge.textContent = 'AI Not Configured';
+            }
         }
 
         // WhatsApp Status Card
@@ -440,7 +467,9 @@
         fetch('/bot/settings')
             .then(r => r.json())
             .then(data => {
+                if (data.rs_name) document.getElementById('rs-name').value = data.rs_name;
                 if (data.admin_wa_number) document.getElementById('admin-wa').value = data.admin_wa_number;
+                                
                 if (data.medify_api_url) document.getElementById('medify-api-url').value = data.medify_api_url;
                 if (data.medify_api_email) document.getElementById('medify-api-email').value = data.medify_api_email;
                 if (data.medify_api_password) document.getElementById('medify-api-password').placeholder = '•••••••• (tersimpan)';
@@ -473,6 +502,7 @@
     }
 
     function saveSettings() {
+        const rsName = document.getElementById('rs-name').value.trim();
         const number = document.getElementById('admin-wa').value.trim();
         const geminiKey = document.getElementById('gemini-key').value.trim();
         const medifyUrl = document.getElementById('medify-api-url').value.trim();
@@ -482,8 +512,9 @@
         const status = document.getElementById('save-status');
 
         btn.disabled = true;
-        btn.innerHTML = '<span class="material-symbols-outlined text-[20px]">sync</span> Menyimpan...';
+        btn.innerHTML = '<span class="material-symbols-outlined text-[20px] animate-spin">sync</span> Menyimpan...';
         const body = {};
+        if (rsName) body.rs_name = rsName;
         if (number) body.admin_wa_number = number;
         if (geminiKey) body.gemini_api_key = geminiKey;
         if (medifyUrl) body.medify_api_url = medifyUrl;
@@ -494,7 +525,11 @@
             method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
             body: JSON.stringify(body)
         })
-        .then(r => r.json())
+        .then(async r => {
+            const data = await r.json();
+            if (!r.ok) throw new Error(data.message || 'Gagal menyimpan');
+            return data;
+        })
         .then(data => {
             status.textContent = '✓ Tersimpan' + (geminiKey ? ' — API key aktif dalam 1 menit' : '');
             status.className = 'text-secondary text-sm font-semibold';
@@ -504,9 +539,10 @@
             setTimeout(() => status.classList.add('hidden'), 5000);
         })
         .catch(err => {
-            status.textContent = '✗ Gagal menyimpan';
+            status.textContent = '✗ ' + err.message;
             status.className = 'text-error text-sm font-semibold';
             status.classList.remove('hidden');
+            console.error('Save error:', err);
         })
         .finally(() => {
             btn.disabled = false;
