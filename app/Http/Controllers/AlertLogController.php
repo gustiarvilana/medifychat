@@ -10,16 +10,10 @@ class AlertLogController extends Controller
 {
     public function data(Request $request)
     {
-        // Asumsikan log error disimpan di file log atau tabel khusus.
-        // Jika belum ada tabel log, kita akan mensimulasikannya.
-        // Untuk demo, kita ambil dari logs yang bisa diakses via file log Laravel.
-        // Dalam produksi, disarankan menggunakan tabel khusus untuk log error.
-        
         $logs = [];
         $logPath = storage_path('logs/laravel.log');
         if (file_exists($logPath)) {
             $content = file_get_contents($logPath);
-            // Parsing sederhana log untuk contoh
             preg_match_all('/\[(.*)\] local.(ERROR|WARNING): (.*)/', $content, $matches, PREG_SET_ORDER);
             foreach ($matches as $match) {
                 $logs[] = [
@@ -29,7 +23,35 @@ class AlertLogController extends Controller
                 ];
             }
         }
-        
+
         return DataTables::of(collect(array_reverse($logs)))->make(true);
+    }
+
+    public function stream(Request $request)
+    {
+        $lines = (int) $request->get('lines', 50);
+        $botDir = base_path('whatsapp-bot');
+
+        $files = [
+            'bot.log' => $botDir . '/bot.log',
+            'bot-err.log' => $botDir . '/bot-err.log',
+        ];
+
+        $result = [];
+        foreach ($files as $key => $path) {
+            if (file_exists($path)) {
+                $content = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+                $recent = array_slice($content, -$lines);
+                foreach ($recent as $line) {
+                    $result[] = [
+                        'file' => $key,
+                        'text' => $line,
+                    ];
+                }
+            }
+        }
+
+        // Sort by file order (bot.log first, then bot-err.log), keep newest last
+        return response()->json($result);
     }
 }

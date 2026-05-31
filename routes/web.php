@@ -39,6 +39,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Bot status API
     Route::get('/bot/status', [BotStatusController::class, 'index']);
     Route::get('/bot/logs', [\App\Http\Controllers\AlertLogController::class, 'data'])->name('bot.logs');
+    Route::get('/bot/logs/content', [\App\Http\Controllers\AlertLogController::class, 'stream']);
     Route::post('/bot/logout', [BotStatusController::class, 'logout']);
     Route::post('/bot/restart-cmd', [BotStatusController::class, 'restart']);
 

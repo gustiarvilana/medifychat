@@ -13,6 +13,7 @@ class BotSettingsController extends Controller
         $status = DB::table('bot_status')->where('id', 1)->first();
 
         return response()->json([
+            'rs_name' => $status->rs_name ?? '',
             'admin_wa_number' => $status->admin_wa_number ?? '',
             'gemini_api_key' => $status->gemini_api_key ? '••••••••' : '',
             'medify_api_url' => $status->medify_api_url ?? '',
@@ -24,6 +25,7 @@ class BotSettingsController extends Controller
     public function update(Request $request): JsonResponse
     {
         $validated = $request->validate([
+            'rs_name' => 'nullable|string|max:255',
             'admin_wa_number' => 'nullable|string|max:100',
             'gemini_api_key' => 'nullable|string|max:255',
             'medify_api_url' => 'nullable|string|max:255',
@@ -40,6 +42,9 @@ class BotSettingsController extends Controller
         }
 
         $data = [];
+        if ($request->has('rs_name')) {
+            $data['rs_name'] = $validated['rs_name'] ?? '';
+        }
         if ($request->has('admin_wa_number')) {
             $data['admin_wa_number'] = $validated['admin_wa_number'] ?? '';
         }
@@ -64,6 +69,15 @@ class BotSettingsController extends Controller
 
         if (!empty($data)) {
             DB::table('bot_status')->where('id', 1)->update($data);
+
+            // Notify admin when API key changes
+            if (isset($data['gemini_api_key'])) {
+                DB::table('bot_commands')->insert([
+                    'command' => 'notify',
+                    'params' => json_encode(['message' => '🔑 *API Key Gemini* telah diperbarui']),
+                    'status' => 'pending',
+                ]);
+            }
         }
 
         return response()->json(['message' => 'Settings saved']);

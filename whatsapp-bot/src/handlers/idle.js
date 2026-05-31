@@ -3,6 +3,7 @@ import { detectIntent, getFallbackResponse } from '../nlp-engine.js';
 import * as gemini from '../gemini-api.js';
 import { sendWithDelay } from './utils.js';
 import { HELP_TEXT, MENU_NUMBERS } from './constants.js';
+import { BOT } from '../bot-profile.js';
 import { handleCheckDoctorSchedule } from './doctor-schedule.js';
 import { handleCheckBed } from './bed.js';
 import { handleStatus } from './status.js';
@@ -68,7 +69,7 @@ export async function handleIdleState(sender, message) {
   if (GREATINGS.test(message) && !intent) {
     const greeting = userName
       ? `Halo Kak *${userName}*! 👋 Senang bertemu lagi. Ada yang bisa saya bantu hari ini?`
-      : `Halo! 👋 Saya asisten dari RS Bhayangkara Setukpa Sukabumi. Ada yang bisa saya bantu?\n\n` +
+      : `Halo! 👋 Saya asisten dari ${BOT.rsName}. Ada yang bisa saya bantu?\n\n` +
         `Bisa langsung tulis saja ya, misalnya:\n` +
         `• "Saya mau daftar berobat"\n` +
         `• "Cek jadwal dokter penyakit dalam"\n` +
@@ -121,7 +122,7 @@ export async function handleIdleState(sender, message) {
       break;
 
     case 'HELP':
-      await sendWithDelay(sender, HELP_TEXT);
+      await sendWithDelay(sender, HELP_TEXT());
       break;
 
     case 'CANCEL':
@@ -130,13 +131,13 @@ export async function handleIdleState(sender, message) {
 
     default:
       const contextContents = await searchContext(message);
-      const contextStr = contextContents ? contextContents.join('\n\n') : '';
       const memoryStr = userName ? `Nama user: ${userName}. ` : '';
-      const geminiPrompt = memoryStr || contextStr
-        ? `[Informasi RS]\n${contextStr}\n\n[Data User]\n${memoryStr}\n\n[Pesan User]\n${message}`
-        : message;
-      const geminiReply = await gemini.chat(geminiPrompt);
+      const geminiPrompt = memoryStr ? `${memoryStr}\n${message}` : message;
+      const history = await db.getChatHistory(sender);
+      const geminiReply = await gemini.chat(geminiPrompt, history);
       if (geminiReply) {
+        await db.appendChatHistory(sender, 'user', message);
+        await db.appendChatHistory(sender, 'model', geminiReply);
         await sendWithDelay(sender, geminiReply);
       } else if (userName) {
         await sendWithDelay(sender,

@@ -252,6 +252,13 @@ export async function handleConfirmBooking(sender, message, formData) {
 
       await db.resetSession(sender);
 
+      const parseEstimasi = (val) => {
+        if (!val) return null;
+        const parts = val.split(' ');
+        return parts.length > 1 ? parts[1].slice(0, 5) : parts[0].slice(0, 5);
+      };
+
+      let estimasiText = 'Silakan cek di loket RS';
       let queueInfo = '';
       try {
         const q = await medifyApi.getQueue({
@@ -263,8 +270,12 @@ export async function handleConfirmBooking(sender, message, formData) {
           const active = qData.find(p => !p.is_selesai && !p.is_cancel);
           const noAntrian = active?.antrian || active?.no_antrian || qData.length;
           queueInfo = `🚶 *No. Antrian:* ${noAntrian} (${qData.length} terdaftar)\n`;
+          estimasiText = parseEstimasi(active?.waktu_estimasi) || estimasiText;
         }
       } catch (_) {}
+      if (!estimasiText || estimasiText === 'Silakan cek di loket RS') {
+        estimasiText = parseEstimasi(booking.waktu_estimasi) || booking.estimasi || estimasiText;
+      }
 
       await sendWithDelay(sender,
         '🎉 *Pendaftaran Berhasil!*\n\n' +
@@ -274,7 +285,7 @@ export async function handleConfirmBooking(sender, message, formData) {
         `🩺 Dokter: *${formData.nama_dokter}*\n` +
         `📅 Tanggal: *${formData.tanggal_pemesanan}*\n` +
         (queueInfo || '') +
-        `⏰ Estimasi: ${booking.estimasi || booking.estimated_time || 'Silakan cek di loket RS'}\n\n` +
+        `⏰ Estimasi: *${estimasiText}*\n\n` +
         '💡 *Tips:*\n' +
         '• Datang 15 menit lebih awal\n' +
         '• Bawa kartu identitas & No RM\n\n' +

@@ -61,6 +61,16 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-lg">
                         <div class="space-y-sm p-lg rounded-xl bg-surface-container-low/30 border border-outline-variant/20">
+                            <label class="font-bold text-sm text-on-surface flex items-center gap-sm" for="rs-name">
+                                <span class="material-symbols-outlined text-[18px] text-primary">local_hospital</span>
+                                Nama Rumah Sakit
+                            </label>
+                            <p class="text-xs text-on-surface-variant">Nama RS yang tampil di setiap jawaban bot.</p>
+                            <input id="rs-name" type="text" placeholder="RS Bhayangkara Setukpa Sukabumi"
+                                class="w-full px-md py-sm bg-white border border-outline-variant/50 rounded-xl text-sm text-on-surface placeholder:text-outline-variant/60 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all mt-sm" />
+                        </div>
+
+                        <div class="space-y-sm p-lg rounded-xl bg-surface-container-low/30 border border-outline-variant/20">
                             <label class="font-bold text-sm text-on-surface flex items-center gap-sm" for="admin-wa">
                                 <span class="material-symbols-outlined text-[18px] text-primary">admin_panel_settings</span>
                                 Admin WhatsApp
@@ -179,11 +189,14 @@
                 <!-- Activity Log -->
                 <section class="bg-surface-container-lowest rounded-xl border border-outline-variant p-lg shadow-sm">
                     <div class="flex items-center justify-between mb-md">
-                        <span class="font-bold text-xs text-on-surface flex items-center gap-sm">
+                        <div class="flex items-center gap-sm">
                             <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
-                            Activity Log
-                        </span>
-                        <span class="text-[10px] text-on-surface-variant font-semibold uppercase tracking-wider">Live</span>
+                            <span class="font-bold text-xs text-on-surface">Activity Log</span>
+                        </div>
+                        <div class="flex items-center gap-sm">
+                            <button onclick="toggleLogExpand()" class="text-[10px] text-on-surface-variant font-semibold uppercase tracking-wider hover:text-on-surface transition-colors" id="log-expand-btn">Expand</button>
+                            <span class="text-[10px] text-on-surface-variant font-semibold uppercase tracking-wider">Live</span>
+                        </div>
                     </div>
                     <div id="status-log" class="bg-[#0d1117] rounded-xl p-md font-mono text-[11px] text-[#e6edf3] min-h-[200px] max-h-[300px] overflow-y-auto leading-relaxed border border-outline-variant/20 shadow-inner">
                         <span class="text-[#8b949e]">// Bot status checking...</span>
@@ -295,6 +308,8 @@
 
 <script>
     let pollInterval = null;
+    let logPollInterval = null;
+    let lastLogSignature = '';
 
     function log(msg, type = 'info') {
         const logEl = document.getElementById('status-log');
@@ -302,6 +317,43 @@
         const colors = { info: 'text-[#e6edf3]', success: 'text-[#3fb950]', error: 'text-[#f85149]', warn: 'text-[#d29922]' };
         logEl.innerHTML += `<div class="${colors[type] || colors.info}"><span class="text-[#8b949e]">[${time}]</span> ${msg}</div>`;
         logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function pollServerLogs() {
+        fetch('/bot/logs/content?lines=200')
+            .then(r => r.json())
+            .then(data => {
+                if (!data || !data.length) return;
+                const sig = data[data.length - 1].file + '|' + data[data.length - 1].text;
+                if (sig === lastLogSignature) return;
+                const logEl = document.getElementById('status-log');
+                const isAtBottom = logEl.scrollTop + logEl.clientHeight >= logEl.scrollHeight - 20;
+                logEl.innerHTML = '';
+                for (const entry of data) {
+                    const time = new Date().toLocaleTimeString();
+                    const type = entry.file === 'bot-err.log' ? 'error' : 'info';
+                    const colors = { info: 'text-[#e6edf3]', error: 'text-[#f85149]' };
+                    logEl.innerHTML += `<div class="${colors[type]}"><span class="text-[#8b949e]">[${time}]</span> <span class="text-[#6e7681]">[${entry.file}]</span> ${escapeHtml(entry.text)}</div>`;
+                }
+                if (isAtBottom) logEl.scrollTop = logEl.scrollHeight;
+                lastLogSignature = sig;
+            })
+            .catch(() => {});
+    }
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    function toggleLogExpand() {
+        const el = document.getElementById('status-log');
+        const btn = document.getElementById('log-expand-btn');
+        const isExpanded = el.style.maxHeight === '600px';
+        el.style.maxHeight = isExpanded ? '300px' : '600px';
+        btn.textContent = isExpanded ? 'Expand' : 'Collapse';
+        el.scrollTop = el.scrollHeight;
     }
 
     function updateUI(data) {
@@ -443,6 +495,7 @@
         fetch('/bot/settings')
             .then(r => r.json())
             .then(data => {
+                if (data.rs_name) document.getElementById('rs-name').value = data.rs_name;
                 if (data.admin_wa_number) document.getElementById('admin-wa').value = data.admin_wa_number;
                 if (data.medify_api_url) document.getElementById('medify-api-url').value = data.medify_api_url;
                 if (data.medify_api_email) document.getElementById('medify-api-email').value = data.medify_api_email;
@@ -491,6 +544,7 @@
     }
 
     function saveSettings() {
+        const rsName = document.getElementById('rs-name').value.trim();
         const number = document.getElementById('admin-wa').value.trim();
         const geminiKey = document.getElementById('gemini-key').value.trim();
         const medifyUrl = document.getElementById('medify-api-url').value.trim();
@@ -502,6 +556,7 @@
         btn.innerHTML = '<span class="material-symbols-outlined text-[20px]">sync</span> Menyimpan...';
         
         const body = {};
+        if (rsName) body.rs_name = rsName;
         if (number) body.admin_wa_number = number;
         if (geminiKey) body.gemini_api_key = geminiKey;
         if (medifyUrl) body.medify_api_url = medifyUrl;
@@ -535,8 +590,8 @@
         pollStatus();
         loadSettings();
         pollInterval = setInterval(pollStatus, 5000);
+        pollServerLogs();
+        logPollInterval = setInterval(pollServerLogs, 5000);
     });
-
-    function escapeHtml(str) { if (!str) return ''; return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 </script>
 </x-app-layout>

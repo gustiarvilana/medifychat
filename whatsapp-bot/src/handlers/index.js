@@ -54,7 +54,7 @@ export async function handleMessage(sender, message, waName = null) {
   }
   if (globalIntent === 'HELP') {
     await db.resetSession(sender);
-    await sendWithDelay(sender, HELP_TEXT);
+    await sendWithDelay(sender, HELP_TEXT());
     return;
   }
   if (globalIntent === 'REGISTRATION') {
@@ -170,7 +170,7 @@ export async function handleMessageForState(sender, message, state, formData, wa
     return true;
   }
   if (globalIntent === 'HELP') {
-    await sendWithDelay(sender, HELP_TEXT);
+    await sendWithDelay(sender, HELP_TEXT());
     return true;
   }
   if (globalIntent === 'STATUS') {
@@ -302,7 +302,7 @@ function getPrevPrompt(prevState, currentState, formData) {
       return '⬅️ *Kembali ke pilih booking.*\n\nSilakan pilih booking yang ingin dibatalkan.';
 
     case 'IDLE':
-      return '⬅️ *Kembali ke menu utama.*\n\n' + HELP_TEXT;
+      return '⬅️ *Kembali ke menu utama.*\n\n' + HELP_TEXT();
 
     default:
       return '⬅️ *Kembali ke langkah sebelumnya.* Silakan pilih ulang ya.';

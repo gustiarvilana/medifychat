@@ -6,7 +6,9 @@ import config from './config.js';
 import { startBot, sendMessage, isLoggedIn } from './baileys-client.js';
 import { setSendMessage } from './message-handler.js';
 import { startPolling, stopPolling } from './bot-commands.js';
-import { getPool, updateBotStatus, cleanupExpiredSessions, getBotStatus } from './database.js';
+import { getPool, updateBotStatus, cleanupExpiredSessions, getBotStatus, reportError } from './database.js';
+import { setRsName } from './bot-profile.js';
+import { refreshContextCache } from './gemini-api.js';
 
 const PORT = parseInt(process.argv[2] || process.env.PORT || '3001');
 
@@ -75,18 +77,29 @@ async function main() {
   // Start polling for admin commands
   startPolling(sock);
 
-  // Track previous quota state to avoid repeated notifications
+  // Track previous states to avoid repeated notifications
   let prevQuotaExhausted = false;
+  let prevLastError = null;
+  let heartbeatCount = 0;
 
   // Start heartbeat - update status every 10 seconds
   setInterval(async () => {
     try {
+      heartbeatCount++;
       const status = await getBotStatus();
 
       // Refresh Medify API config from database periodically
       if (status?.medify_api_url) config.medify.apiUrl = status.medify_api_url;
       if (status?.medify_api_email) config.medify.email = status.medify_api_email;
       if (status?.medify_api_password) config.medify.password = status.medify_api_password;
+
+      // Refresh RS name from database
+      if (status?.rs_name) setRsName(status.rs_name);
+
+      // Refresh context cache every ~5 minutes (30 heartbeats * 10s = 300s)
+      if (heartbeatCount % 30 === 0) {
+        refreshContextCache().catch(() => {});
+      }
 
       await updateBotStatus({
         is_running: true,
@@ -123,6 +136,24 @@ async function main() {
         );
         console.log('Quota restored notification sent to admin');
       }
+
+      // Error server notification
+      const currentError = status?.last_error;
+      const lastErrorNotified = status?.last_error_notified ? true : false;
+      if (currentError && !lastErrorNotified && adminNumber) {
+        const errorTime = status?.last_error_at
+          ? new Date(status.last_error_at).toLocaleString('id-ID')
+          : '';
+        await sendMessage(adminNumber,
+          '🔴 *Error Server Terdeteksi*\n\n' +
+          `Waktu: ${errorTime}\n` +
+          `Error: ${currentError}\n\n` +
+          'Silakan cek log bot untuk detail lebih lanjut.'
+        );
+        await updateBotStatus({ last_error_notified: 1 });
+        console.log('Error notification sent to admin');
+      }
+      prevLastError = currentError;
 
       prevQuotaExhausted = quotaExhausted;
     } catch (error) {

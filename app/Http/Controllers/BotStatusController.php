@@ -36,6 +36,8 @@ class BotStatusController extends Controller
             'qr_code' => $status->qr_code ?? null,
             'pid' => $status->pid ?? null,
             'quota_exhausted' => $quotaExhausted,
+            'last_error' => $status->last_error ?? null,
+            'last_error_at' => $status->last_error_at ?? null,
             'recent_commands' => $recentCommands,
             'recent_activity' => $recentActivity,
         ]);

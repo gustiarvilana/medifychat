@@ -80,11 +80,21 @@ export async function updateSessionData(waId, formData) {
 
 export async function resetSession(waId) {
   await upsertSession(waId, 'IDLE', {});
+  await clearChatHistory(waId);
 }
 
 export async function getBotStatus() {
   const rows = await query('SELECT * FROM bot_status WHERE id = 1');
   return rows[0] || null;
+}
+
+export async function reportError(errorMessage) {
+  try {
+    await execute(
+      `UPDATE bot_status SET last_error = ?, last_error_at = NOW(), last_error_notified = 0, updated_at = NOW() WHERE id = 1`,
+      [errorMessage]
+    );
+  } catch (_) {}
 }
 
 export async function updateBotStatus(data) {
@@ -137,6 +147,42 @@ export async function getAllMemory(sender) {
     result[row.key_name] = row.value;
   }
   return result;
+}
+
+export async function getChatHistory(sender) {
+  const phone = sender.split('@')[0];
+  const rows = await query(
+    'SELECT value FROM bot_memory WHERE sender = ? AND key_name = ?',
+    [phone, 'chat_history']
+  );
+  if (!rows[0]?.value) return [];
+  try {
+    return JSON.parse(rows[0].value);
+  } catch {
+    return [];
+  }
+}
+
+export async function appendChatHistory(sender, role, text) {
+  const history = await getChatHistory(sender);
+  history.push({ role, text });
+  if (history.length > 10) {
+    history.splice(0, history.length - 10);
+  }
+  const phone = sender.split('@')[0];
+  await execute(
+    `INSERT INTO bot_memory (sender, key_name, value, updated_at) VALUES (?, 'chat_history', ?, NOW())
+     ON DUPLICATE KEY UPDATE value = ?, updated_at = NOW()`,
+    [phone, JSON.stringify(history), JSON.stringify(history)]
+  );
+}
+
+export async function clearChatHistory(sender) {
+  const phone = sender.split('@')[0];
+  await execute(
+    'DELETE FROM bot_memory WHERE sender = ? AND key_name = ?',
+    [phone, 'chat_history']
+  );
 }
 
 export async function cleanupExpiredSessions() {

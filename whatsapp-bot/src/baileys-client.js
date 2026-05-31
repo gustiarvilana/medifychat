@@ -6,6 +6,7 @@ import makeWASocket, {
 import QRCode from 'qrcode';
 import * as db from './database.js';
 import { handleMessage, handleMessageForState } from './message-handler.js';
+import config from './config.js';
 import pino from 'pino';
 
 let sock = null;
@@ -25,7 +26,7 @@ export async function startBot() {
     logger,
     browser: ['Medify Bot', 'Chrome', '1.0.0'],
     markOnlineOnConnect: false,
-    syncFullHistory: true,
+    syncFullHistory: false,
     generateHighQualityLinkPreview: false,
   });
 
@@ -73,19 +74,18 @@ export async function startBot() {
         console.log('Connection closed, statusCode:', statusCode);
 
         const isLoggedOut = statusCode === DisconnectReason.loggedOut;
-        console.log('Updating DB status after disconnect...');
-        try {
-          await db.updateBotStatus({
-            is_logged_in: false,
-            is_running: isLoggedOut ? false : true,
-            last_activity: new Date(),
-          });
-        } catch (dbErr) {
-          console.error('DB update after disconnect failed:', dbErr);
-        }
 
         if (isLoggedOut) {
           console.log('Logged out, clearing auth for fresh QR...');
+          try {
+            await db.updateBotStatus({
+              is_logged_in: false,
+              is_running: false,
+              last_activity: new Date(),
+            });
+          } catch (dbErr) {
+            console.error('DB update after logout failed:', dbErr);
+          }
           try {
             const { readdirSync, unlinkSync } = await import('fs');
             const { join } = await import('path');
@@ -95,18 +95,22 @@ export async function startBot() {
             }
             console.log('Auth files cleared');
           } catch (_) {}
-          try {
-            await db.updateBotStatus({ is_running: false });
-          } catch (dbErr) {
-            console.error('DB update after auth clear failed:', dbErr);
-          }
-          console.log('Restarting in 3 seconds...');
-          setTimeout(() => {
-            startBot().catch(err => console.error('StartBot after logout failed:', err));
-          }, 3000);
+          console.log('Restarting for fresh QR in 3 seconds...');
+          setTimeout(startBot, 3000);
         } else {
-          console.log('Reconnecting in 5 seconds...');
-          setTimeout(startBot, 5000);
+          const errMsg = lastDisconnect?.error?.message || `Connection closed with statusCode ${statusCode}`;
+          console.log('Connection closed — Baileys will auto-reconnect with saved session');
+          if (statusCode !== 515) { // 515 = normal reconnect
+            db.reportError(`WhatsApp disconnect (${statusCode}): ${errMsg}`);
+          }
+          try {
+            await db.updateBotStatus({
+              is_logged_in: false,
+              last_activity: new Date(),
+            });
+          } catch (dbErr) {
+            console.error('DB update after disconnect failed:', dbErr);
+          }
         }
       }
     } catch (err) {
